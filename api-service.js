@@ -83,38 +83,70 @@ class ApiService {
             }
             
             // 后端返回格式: {code, message, data: {...}}
-            // 返回完整响应对象，包含 code, message, data
-            return result;
+            // 返回 data 字段中的实际业务数据
+            return result.data || result;
         } catch (error) {
             console.error('API请求失败:', error);
             throw error;
         }
     }
 
-    // 通用 GET 请求方法
+    // 通用 GET 请求方法（返回完整响应，包含 code, message, data）
     async get(endpoint) {
-        return this.request(endpoint, { method: 'GET' });
+        const url = `${this.baseURL}${endpoint}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.message || '请求失败');
+        }
+        return result; // 返回完整响应
     }
 
-    // 通用 POST 请求方法
+    // 通用 POST 请求方法（返回完整响应，包含 code, message, data）
     async post(endpoint, data = {}) {
-        return this.request(endpoint, {
+        const url = `${this.baseURL}${endpoint}`;
+        const response = await fetch(url, {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.message || '请求失败');
+        }
+        return result; // 返回完整响应
     }
 
-    // 通用 PUT 请求方法
+    // 通用 PUT 请求方法（返回完整响应）
     async put(endpoint, data = {}) {
-        return this.request(endpoint, {
+        const url = `${this.baseURL}${endpoint}`;
+        const response = await fetch(url, {
             method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.message || '请求失败');
+        }
+        return result;
     }
 
-    // 通用 DELETE 请求方法
+    // 通用 DELETE 请求方法（返回完整响应）
     async delete(endpoint) {
-        return this.request(endpoint, { method: 'DELETE' });
+        const url = `${this.baseURL}${endpoint}`;
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.message || '请求失败');
+        }
+        return result;
     }
 
     // 转换蛇形命名为驼峰命名
