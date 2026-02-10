@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>经历分享 - 职业规划导航</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --primary-blue: #4A90E4;
+            --light-blue: #7BB3F0;
+            --pale-blue: #A8C8EC;
+            --very-light-blue: #D6E3F8;
+            --text-dark: #2C3E50;
+            --text-light: #7F8C8D;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, var(--very-light-blue) 0%, #F8FAFC 100%);
+            min-height: 100vh;
+        }
+        
+        .page-title {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .experience-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(74, 144, 228, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .experience-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(74, 144, 228, 0.15);
+        }
+        
+        .filter-btn {
+            background: var(--very-light-blue);
+            border: 2px solid var(--pale-blue);
+            border-radius: 12px;
+            padding: 8px 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .filter-btn.active {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: white;
+        }
+        
+        .search-box {
+            background: white;
+            border: 2px solid var(--pale-blue);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box:focus-within {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(74, 144, 228, 0.1);
+        }
+        
+        .badge {
+            background: var(--pale-blue);
+            color: var(--text-dark);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .anonymous-badge {
+            background: var(--very-light-blue);
+            color: var(--text-light);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s ease;
+        }
+        
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--primary-blue);
+            border-radius: 50%;
+            position: relative;
+        }
+        
+        .timeline-dot::after {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 40px;
+            background: var(--pale-blue);
+        }
+        
+        .timeline-dot.last::after {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-graduation-cap text-white text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold text-gray-800">职业规划导航</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-gray-600 hover:text-blue-600 transition-colors">专业选择</a>
+                    <a href="major-detail.html" class="text-gray-600 hover:text-blue-600 transition-colors">职业详情</a>
+                    <a href="experience-sharing.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">经历分享</a>
+                    <a href="add-info.html" class="text-gray-600 hover:text-blue-600 transition-colors">信息管理</a>
+                </div>
+                
+                <button onclick="history.back()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    返回
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 页面标题 -->
+        <div class="text-center mb-12 fade-in">
+            <h1 class="page-title text-4xl font-bold mb-4">经历分享</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                分享您的学习和工作经历，帮助他人做出更明智的职业选择
+            </p>
+        </div>
+
+        <!-- 最新添加的个人经历 -->
+        <section class="mb-12 fade-in" id="newlyAddedExperiences">
+            <!-- 新增个人经历将在这里显示 -->
+        </section>
+
+        <!-- 搜索和筛选区域 -->
+        <section class="mb-8 fade-in">
+            <div class="bg-white rounded-2xl p-6 shadow-lg">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                    <!-- 搜索框 -->
+                    <div class="search-box flex items-center px-4 py-3 flex-1 lg:max-w-md">
+                        <i class="fas fa-search text-gray-400 mr-3"></i>
+                        <input type="text" id="experienceSearch" placeholder="搜索经历内容..." class="outline-none flex-1">
+                    </div>
+                    
+                    <!-- 筛选按钮 -->
+                    <div class="flex flex-wrap gap-2">
+                        <button class="filter-btn active" data-filter="all">全部</button>
+                        <button class="filter-btn" data-filter="computer">计算机</button>
+                        <button class="filter-btn" data-filter="finance">金融</button>
+                        <button class="filter-btn" data-filter="design">设计</button>
+                        <button class="filter-btn" data-filter="bachelor">学士</button>
+                        <button class="filter-btn" data-filter="master">硕士</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 经历列表 -->
+        <section class="fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8" id="experienceList">
+                <!-- 个人经历卡片将动态生成 -->
+            </div>
+            
+            <!-- 加载更多按钮 -->
+            <div class="text-center mt-12">
+                <button id="loadMoreBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-chevron-down mr-2"></i>
+                    加载更多
+                </button>
+            </div>
+            
+            <!-- 无数据提示 -->
+            <div id="noDataMessage" class="text-center py-16 hidden">
+                <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">暂无相关经历</h3>
+                <p class="text-gray-500">尝试调整筛选条件或搜索关键词</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- 经历详情模态框 -->
+    <div id="experienceModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">个人经历详情</h2>
+                    <button id="closeModal" class="text-gray-500 hover:text-gray-700 text-2xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div id="modalContent">
+                    <!-- 详细内容将动态填充 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-600">&copy; 2024 职业规划导航平台. 助力您的职业发展之路</p>
+        </div>
+    </footer>
+
+    <script src="api-service.js"></script>
+    <script>
+        // 个人经历数据
+        let experiences = [];
+        let filteredExperiences = [];
+        let newlyAddedExperiences = [];
+        let currentPage = 1;
+        const pageSize = 6;
+        let isLoading = false;
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        // 初始化页面
+        async function initializePage() {
+            setupEventListeners();
+            await loadExperiences();
+            renderExperiences();
+            setupScrollAnimations();
+            
+            // 添加页面加载动画
+            anime({
+                targets: '.fade-in',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 800,
+                delay: anime.stagger(200),
+                easing: 'easeOutQuart'
+            });
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 搜索功能
+            document.getElementById('experienceSearch').addEventListener('input', handleSearch);
+            
+            // 筛选功能
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', handleFilter);
+            });
+            
+            // 加载更多
+            document.getElementById('loadMoreBtn').addEventListener('click', loadMoreExperiences);
+            
+            // 模态框
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('experienceModal').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+        }
+
+        // 加载个人经历数据
+        async function loadExperiences() {
+            try {
+                if (window.apiService) {
+                    const result = await window.apiService.getPersonalExperiences({ page: 1, limit: 20 });
+                    experiences = result.items || [];
+                } else {
+                    // 使用模拟数据
+                    experiences = getMockExperiences();
+                }
+                filteredExperiences = [...experiences];
+            } catch (error) {
+                console.error('加载个人经历失败:', error);
+                experiences = getMockExperiences();
+                filteredExperiences = [...experiences];
+            }
+        }
+
+        // 获取模拟数据
+        function getMockExperiences() {
+            return [
+                {
+                    id: 1,
+                    nickname: '张同学',
+                    major_id: 80101,
+                    major_name: '计算机科学与技术',
+                    education: '学士',
+                    school_name: '清华大学',
+                    degree: '计算机科学与技术学士',
+                    experience: '毕业后进入某互联网公司工作，从初级开发工程师做起，现在已经是高级软件工程师，主要负责后端系统开发。工作3年来，参与了多个大型项目的开发，积累了丰富的项目经验。建议学弟学妹们多参加实习，提前了解行业需求。',
+                    is_anonymous: false,
+                    created_at: '2024-10-23T10:00:00Z',
+                    tags: ['后端开发', '互联网公司', '项目经验']
+                },
+                {
+                    id: 2,
+                    nickname: '匿名用户',
+                    major_id: 20101,
+                    major_name: '经济学',
+                    education: '硕士',
+                    school_name: '北京大学',
+                    degree: '经济学硕士',
+                    experience: '在银行工作了3年，主要从事风险控制工作，现在是一家金融科技公司的高级分析师。经济学专业为我打下了扎实的理论基础，但实际工作中还需要不断学习和适应。金融行业变化很快，需要保持学习的热情。',
+                    is_anonymous: true,
+                    created_at: '2024-10-22T15:30:00Z',
+                    tags: ['金融科技', '风险控制', '银行工作']
+                },
+                {
+                    id: 3,
+                    nickname: '李设计师',
+                    major_id: 120101,
+                    major_name: '视觉传达设计',
+                    education: '学士',
+                    school_name: '中央美术学院',
+                    degree: '设计学学士',
+                    experience: '毕业后进入设计公司工作，现在是一家互联网公司的UI/UX设计师。设计工作需要不断学习和创新，建议在校生多关注行业趋势，多练习设计技能，建立自己的作品集。',
+                    is_anonymous: false,
+                    created_at: '2024-10-21T09:15:00Z',
+                    tags: ['UI设计', 'UX设计', '作品集']
+                },
+                {
+                    id: 4,
+                    nickname: '王工程师',
+                    major_id: 80201,
+                    major_name: '电子信息工程',
+                    education: '硕士',
+                    school_name: '上海交通大学',
+                    degree: '电子信息工程硕士',
+                    experience: '目前在一家通信设备公司工作，主要负责5G相关技术的研发。电子信息工程专业的学习内容很广泛，建议学弟学妹们尽早确定自己的方向，深入学习相关技术。',
+                    is_anonymous: false,
+                    created_at: '2024-10-20T14:20:00Z',
+                    tags: ['5G技术', '通信设备', '研发工作']
+                },
+                {
+                    id: 5,
+                    nickname: '匿名用户',
+                    major_id: 20201,
+                    major_name: '金融学',
+                    education: '学士',
+                    school_name: '复旦大学',
+                    degree: '金融学学士',
+                    experience: '毕业后进入投行工作，现在是一名投资分析师。金融行业工作压力很大，但收入也相对较高。建议想进入这个行业的同学要有心理准备，同时要加强数学和统计学的学习。',
+                    is_anonymous: true,
+                    created_at: '2024-10-19T11:45:00Z',
+                    tags: ['投行', '投资分析', '高压工作']
+                },
+                {
+                    id: 6,
+                    nickname: '陈同学',
+                    major_id: 80102,
+                    major_name: '软件工程',
+                    education: '硕士',
+                    school_name: '浙江大学',
+                    degree: '软件工程硕士',
+                    experience: '现在是一家创业公司的技术负责人，带领一个10人的开发团队。软件工程专业为我提供了扎实的编程基础和项目管理知识。创业虽然辛苦，但很有成就感。',
+                    is_anonymous: false,
+                    created_at: '2024-10-18T16:30:00Z',
+                    tags: ['创业', '技术管理', '团队领导']
+                }
+            ];
+        }
+
+        // 渲染个人经历列表
+        function renderExperiences() {
+            const container = document.getElementById('experienceList');
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const experiencesToShow = filteredExperiences.slice(0, endIndex);
+            
+            if (currentPage === 1) {
+                container.innerHTML = '';
+            }
+            
+            if (experiencesToShow.length === 0) {
+                document.getElementById('noDataMessage').classList.remove('hidden');
+                document.getElementById('loadMoreBtn').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('noDataMessage').classList.add('hidden');
+            
+            const newExperiences = filteredExperiences.slice(startIndex, endIndex);
+            
+            newExperiences.forEach((experience, index) => {
+                const card = createExperienceCard(experience);
+                container.appendChild(card);
+                
+                // 添加动画
+                anime({
+                    targets: card,
+                    opacity: [0, 1],
+                    translateY: [20, 0],
+                    duration: 600,
+                    delay: index * 100,
+                    easing: 'easeOutQuart'
+                });
+            });
+            
+            // 更新加载更多按钮
+            if (endIndex >= filteredExperiences.length) {
+                document.getElementById('loadMoreBtn').style.display = 'none';
+            } else {
+                document.getElementById('loadMoreBtn').style.display = 'inline-block';
+            }
+        }
+
+        // 创建个人经历卡片
+        function createExperienceCard(experience) {
+            const card = document.createElement('div');
+            card.className = 'experience-card p-6';
+            
+            const displayName = experience.is_anonymous ? '匿名用户' : experience.nickname;
+            
+            card.innerHTML = `
+                <div class="flex items-start space-x-4 mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-blue-600"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-bold text-gray-800 truncate">${displayName}</h3>
+                            ${experience.is_anonymous ? '<span class="anonymous-badge">匿名</span>' : ''}
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            <span class="badge">${experience.major_name}</span>
+                            <span class="badge">${experience.education}</span>
+                            <span class="badge">${experience.school_name}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-gray-600 leading-relaxed line-clamp-3">${experience.experience}</p>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap gap-1">
+                        ${(experience.tags || []).slice(0, 3).map(tag => 
+                            `<span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">${tag}</span>`
+                        ).join('')}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        ${formatDate(experience.created_at)}
+                    </div>
+                </div>
+            `;
+            
+            card.addEventListener('click', () => showExperienceDetail(experience));
+            
+            return card;
+        }
+
+        // 显示经历详情
+        function showExperienceDetail(experience) {
+            const modal = document.getElementById('experienceModal');
+            const content = document.getElementById('modalContent');
+            
+            const displayName = experience.is_anonymous ? '匿名用户' : experience.nickname;
+            
+            content.innerHTML = `
+                <div class="flex items-start space-x-6 mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-2xl text-blue-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">${displayName}</h3>
+                        <div class="flex flex-wrap gap-3 mb-3">
+                            <span class="badge">${experience.major_name}</span>
+                            <span class="badge">${experience.education}</span>
+                            <span class="badge">${experience.school_name}</span>
+                            ${experience.degree ? `<span class="badge">${experience.degree}</span>` : ''}
+                        </div>
+                        ${experience.is_anonymous ? '<span class="anonymous-badge">匿名用户</span>' : ''}
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">个人经历</h4>
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <p class="text-gray-700 leading-relaxed whitespace-pre-wrap">${experience.experience}</p>
+                    </div>
+                </div>
+                
+                ${(experience.tags && experience.tags.length > 0) ? `
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">相关标签</h4>
+                        <div class="flex flex-wrap gap-2">
+                            ${experience.tags.map(tag => 
+                                `<span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">${tag}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <div class="flex items-center justify-between text-sm text-gray-500">
+                    <div>
+                        发布时间：${formatDate(experience.created_at)}
+                    </div>
+                    <div class="flex space-x-4">
+                        <button class="flex items-center space-x-1 hover:text-blue-600">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span>点赞</span>
+                        </button>
+                        <button class="flex items-center space-x-1 hover:text-blue-600">
+                            <i class="fas fa-share"></i>
+                            <span>分享</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            
+            // 添加动画
+            anime({
+                targets: modal.querySelector('.bg-white'),
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 300,
+                easing: 'easeOutQuart'
+            });
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            const modal = document.getElementById('experienceModal');
+            modal.classList.add('hidden');
+        }
+
+        // 处理搜索
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase().trim();
+            
+            if (query === '') {
+                filteredExperiences = [...experiences];
+            } else {
+                filteredExperiences = experiences.filter(experience => 
+                    experience.experience.toLowerCase().includes(query) ||
+                    experience.major_name.toLowerCase().includes(query) ||
+                    experience.school_name.toLowerCase().includes(query) ||
+                    (experience.nickname && experience.nickname.toLowerCase().includes(query)) ||
+                    (experience.tags && experience.tags.some(tag => tag.toLowerCase().includes(query)))
+                );
+            }
+            
+            currentPage = 1;
+            renderExperiences();
+        }
+
+        // 处理筛选
+        function handleFilter(e) {
+            // 更新按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            e.target.classList.add('active');
+            
+            const filter = e.target.dataset.filter;
+            
+            if (filter === 'all') {
+                filteredExperiences = [...experiences];
+            } else if (filter === 'computer') {
+                filteredExperiences = experiences.filter(exp => 
+                    exp.major_name && exp.major_name.includes('计算机')
+                );
+            } else if (filter === 'finance') {
+                filteredExperiences = experiences.filter(exp => 
+                    exp.major_name && (exp.major_name.includes('经济') || exp.major_name.includes('金融'))
+                );
+            } else if (filter === 'design') {
+                filteredExperiences = experiences.filter(exp => 
+                    exp.major_name && exp.major_name.includes('设计')
+                );
+            } else if (filter === 'bachelor') {
+                filteredExperiences = experiences.filter(exp => exp.education === '学士');
+            } else if (filter === 'master') {
+                filteredExperiences = experiences.filter(exp => exp.education === '硕士');
+            }
+            
+            currentPage = 1;
+            renderExperiences();
+        }
+
+        // 加载更多
+        function loadMoreExperiences() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            currentPage++;
+            
+            setTimeout(() => {
+                renderExperiences();
+                isLoading = false;
+            }, 500);
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) {
+                return '昨天';
+            } else if (diffDays < 7) {
+                return `${diffDays}天前`;
+            } else if (diffDays < 30) {
+                return `${Math.ceil(diffDays / 7)}周前`;
+            } else {
+                return date.toLocaleDateString('zh-CN');
+            }
+        }
+
+        // 新增个人经历显示功能
+        let newlyAddedExperiences = [];
+
+        function addNewExperienceToDisplay(experience) {
+            newlyAddedExperiences.push(experience);
+            updateNewlyAddedExperiencesDisplay();
+        }
+
+        function updateNewlyAddedExperiencesDisplay() {
+            const container = document.getElementById('newlyAddedExperiences');
+            if (!container) return;
+            
+            // 清除现有内容
+            container.innerHTML = '';
+            
+            if (newlyAddedExperiences.length === 0) return;
+            
+            const title = document.createElement('h2');
+            title.className = 'text-2xl font-bold text-gray-800 mb-6 text-center';
+            title.innerHTML = '<i class="fas fa-plus-circle text-green-500 mr-2"></i>最新分享的經歷';
+            container.appendChild(title);
+            
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8';
+            
+            newlyAddedExperiences.slice(-3).forEach(experience => {
+                const card = createExperienceCard(experience);
+                card.classList.add('border-2', 'border-green-500');
+                grid.appendChild(card);
+            });
+            
+            container.appendChild(grid);
+            
+            // 添加动画效果
+            anime({
+                targets: container,
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 600,
+                easing: 'easeOutQuart'
+            });
+        }
+
+        // 设置滚动动画
+        function setupScrollAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // 导出全局函数供HTML调用
+        window.addNewExperienceToDisplay = addNewExperienceToDisplay;
+    </script>
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的报告 - 职业规划导航</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        * { font-family: 'Inter', 'Noto Sans SC', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .progress-ring { transform: rotate(-90deg); }
+        .chapter-card { transition: all 0.3s ease; }
+        .chapter-card:hover { transform: translateY(-4px); box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+        .status-badge {
+            transition: all 0.3s ease;
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold">职业规划导航</a>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="index.html" class="hover:text-gray-200 transition">专业树</a>
+                    <a href="user-profile.html" class="hover:text-gray-200 transition">我的画像</a>
+                    <a href="report-center.html" class="font-semibold border-b-2 border-white">我的报告</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 页面标题 -->
+        <div class="mb-8 fade-in">
+            <h1 class="text-3xl font-bold text-gray-900">我的报告</h1>
+            <p class="text-gray-600 mt-2">基于您的画像数据，生成个性化的职业规划报告</p>
+        </div>
+
+        <!-- 加载状态 -->
+        <div id="loading-state" class="flex justify-center items-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+            <span class="ml-4 text-gray-600">加载中...</span>
+        </div>
+
+        <!-- 内容区域 -->
+        <div id="content-area" class="hidden">
+            <!-- 统计概览 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 fade-in">
+                <div class="glass-card rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">已生成报告</p>
+                            <p class="text-3xl font-bold text-indigo-600" id="total-reports">0</p>
+                        </div>
+                        <div class="w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">画像完整度</p>
+                            <p class="text-3xl font-bold text-green-600" id="profile-completeness">0%</p>
+                        </div>
+                        <div class="relative w-16 h-16">
+                            <svg class="w-16 h-16 progress-ring" viewBox="0 0 36 36">
+                                <path class="text-gray-200" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+                                <path id="completeness-ring" class="text-green-500" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">最近生成</p>
+                            <p class="text-lg font-semibold text-gray-800" id="last-generated">暂无</p>
+                        </div>
+                        <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center">
+                            <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 进行中的任务 -->
+            <div id="active-task-section" class="hidden mb-8 fade-in">
+                <div class="glass-card rounded-2xl p-6 shadow-lg border-l-4 border-indigo-500">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center pulse-animation">
+                                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">正在生成报告...</h3>
+                                <p class="text-sm text-gray-500" id="active-task-status">准备中</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-48">
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-600">进度</span>
+                                    <span class="font-semibold text-indigo-600" id="active-task-progress">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div id="active-task-progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <a href="report-generation.html" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                                查看详情
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 报告生成卡片 -->
+            <div class="mb-8 fade-in">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">生成新报告</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- 子报告A -->
+                    <div class="chapter-card glass-card rounded-2xl p-6 shadow-lg border-t-4 border-blue-500">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                <span class="text-xl font-bold text-blue-600">A</span>
+                            </div>
+                            <span id="badge-a" class="status-badge px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                                检查中...
+                            </span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">用户画像深度分析</h3>
+                        <p class="text-sm text-gray-600 mb-4">基于接口层的Holland、MBTI、价值观和能力评估进行全面分析</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500">预计 8,000+ 字</span>
+                            <button id="btn-a" onclick="startGeneration('SUB_REPORT_A')" disabled
+                                class="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed transition">
+                                生成
+                            </button>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-500">条件满足度</span>
+                                <span id="progress-a-text" class="font-medium text-gray-700">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div id="progress-a-bar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 子报告B -->
+                    <div class="chapter-card glass-card rounded-2xl p-6 shadow-lg border-t-4 border-green-500">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                <span class="text-xl font-bold text-green-600">B</span>
+                            </div>
+                            <span id="badge-b" class="status-badge px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                                检查中...
+                            </span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">用户表单分析</h3>
+                        <p class="text-sm text-gray-600 mb-4">分析您的表单填写历史和CASVE决策阶段演变过程</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500">预计 6,000+ 字</span>
+                            <button id="btn-b" onclick="startGeneration('SUB_REPORT_B')" disabled
+                                class="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed transition">
+                                生成
+                            </button>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-500">条件满足度</span>
+                                <span id="progress-b-text" class="font-medium text-gray-700">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div id="progress-b-bar" class="bg-green-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 子报告C -->
+                    <div class="chapter-card glass-card rounded-2xl p-6 shadow-lg border-t-4 border-purple-500">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                <span class="text-xl font-bold text-purple-600">C</span>
+                            </div>
+                            <span id="badge-c" class="status-badge px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                                检查中...
+                            </span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">三层职业规划建模</h3>
+                        <p class="text-sm text-gray-600 mb-4">基于三层模型进行接口层、可变层、核心层的结构化建模</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500">预计 15,000+ 字</span>
+                            <button id="btn-c" onclick="startGeneration('SUB_REPORT_C')" disabled
+                                class="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed transition">
+                                生成
+                            </button>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-500">条件满足度</span>
+                                <span id="progress-c-text" class="font-medium text-gray-700">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div id="progress-c-bar" class="bg-purple-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 子报告D -->
+                    <div class="chapter-card glass-card rounded-2xl p-6 shadow-lg border-t-4 border-amber-500">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                                <span class="text-xl font-bold text-amber-600">D</span>
+                            </div>
+                            <span id="badge-d" class="status-badge px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                                检查中...
+                            </span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">分层递进行动体系</h3>
+                        <p class="text-sm text-gray-600 mb-4">设计Layer 1-4的分层递进行动计划和终身学习系统</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500">预计 12,000+ 字</span>
+                            <button id="btn-d" onclick="startGeneration('SUB_REPORT_D')" disabled
+                                class="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed transition">
+                                生成
+                            </button>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-500">条件满足度</span>
+                                <span id="progress-d-text" class="font-medium text-gray-700">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                <div id="progress-d-bar" class="bg-amber-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 完整报告 -->
+                    <div class="chapter-card glass-card rounded-2xl p-6 shadow-lg border-t-4 border-indigo-500 md:col-span-2 lg:col-span-2">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900">职业规划完整报告</h3>
+                                    <p class="text-sm text-gray-500">整合所有子报告的综合分析</p>
+                                </div>
+                            </div>
+                            <span id="badge-full" class="status-badge px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                                检查中...
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <p class="text-sm text-gray-500">预计字数</p>
+                                <p class="text-xl font-bold text-indigo-600">50,000+</p>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <p class="text-sm text-gray-500">预计时间</p>
+                                <p class="text-xl font-bold text-indigo-600">约5分钟</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1 mr-4">
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="text-gray-500">条件满足度</span>
+                                    <span id="progress-full-text" class="font-medium text-gray-700">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div id="progress-full-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <button id="btn-full" onclick="startGeneration('FULL_REPORT')" disabled
+                                class="px-6 py-3 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed transition font-medium">
+                                生成完整报告
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 历史报告列表 -->
+            <div class="fade-in">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">历史报告</h2>
+                <div id="history-list" class="space-y-4">
+                    <!-- 动态加载历史报告 -->
+                </div>
+                <div id="empty-history" class="text-center py-12 text-gray-500 hidden">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <p>暂无生成的报告</p>
+                    <p class="text-sm mt-2">完成上方条件后即可生成您的第一份报告</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="api-service.js"></script>
+    <script>
+        // 全局状态
+        let centerData = null;
+        let prerequisitesData = {};
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCenterData();
+        });
+
+        // 加载报告中心数据
+        async function loadCenterData() {
+            try {
+                const response = await apiService.get('/user-reports/center/init');
+                if (response.code === 200) {
+                    centerData = response.data;
+                    renderCenterData();
+                    await checkAllPrerequisites();
+                }
+            } catch (error) {
+                console.error('加载报告中心数据失败:', error);
+                showError('加载数据失败，请稍后重试');
+            }
+        }
+
+        // 渲染中心数据
+        function renderCenterData() {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('content-area').classList.remove('hidden');
+
+            // 统计数据
+            document.getElementById('total-reports').textContent = centerData.user_stats.total_reports;
+            document.getElementById('profile-completeness').textContent = centerData.user_stats.profile_completeness + '%';
+            
+            // 更新完整度圆环
+            const completeness = centerData.user_stats.profile_completeness;
+            document.getElementById('completeness-ring').setAttribute('stroke-dasharray', `${completeness}, 100`);
+
+            // 最近生成时间
+            if (centerData.user_stats.last_generated_at) {
+                const date = new Date(centerData.user_stats.last_generated_at);
+                document.getElementById('last-generated').textContent = date.toLocaleDateString('zh-CN');
+            }
+
+            // 进行中的任务
+            if (centerData.active_task) {
+                document.getElementById('active-task-section').classList.remove('hidden');
+                document.getElementById('active-task-status').textContent = getStatusText(centerData.active_task.status);
+                document.getElementById('active-task-progress').textContent = centerData.active_task.progress + '%';
+                document.getElementById('active-task-progress-bar').style.width = centerData.active_task.progress + '%';
+                
+                // 存储任务ID供生成页面使用
+                localStorage.setItem('active_task_id', centerData.active_task.task_id);
+            }
+
+            // 历史报告
+            renderHistoryReports(centerData.recent_reports);
+        }
+
+        // 检查所有生成条件
+        async function checkAllPrerequisites() {
+            const reportTypes = ['SUB_REPORT_A', 'SUB_REPORT_B', 'SUB_REPORT_C', 'SUB_REPORT_D', 'FULL_REPORT'];
+            
+            for (const type of reportTypes) {
+                try {
+                    const response = await apiService.get(`/user-reports/prerequisites?report_type=${type}`);
+                    if (response.code === 200) {
+                        prerequisitesData[type] = response.data;
+                        updatePrerequisiteUI(type, response.data);
+                    }
+                } catch (error) {
+                    console.error(`检查${type}条件失败:`, error);
+                }
+            }
+        }
+
+        // 更新条件UI
+        function updatePrerequisiteUI(reportType, data) {
+            const typeMap = {
+                'SUB_REPORT_A': 'a',
+                'SUB_REPORT_B': 'b',
+                'SUB_REPORT_C': 'c',
+                'SUB_REPORT_D': 'd',
+                'FULL_REPORT': 'full'
+            };
+            const suffix = typeMap[reportType];
+
+            // 更新进度条
+            document.getElementById(`progress-${suffix}-text`).textContent = data.overall_progress + '%';
+            document.getElementById(`progress-${suffix}-bar`).style.width = data.overall_progress + '%';
+
+            // 更新状态徽章
+            const badge = document.getElementById(`badge-${suffix}`);
+            const btn = document.getElementById(`btn-${suffix}`);
+
+            if (data.can_generate) {
+                badge.className = 'status-badge px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700';
+                badge.textContent = '可生成';
+                btn.disabled = false;
+                btn.className = 'px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition';
+                if (reportType === 'FULL_REPORT') {
+                    btn.className = 'px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium';
+                }
+            } else {
+                badge.className = 'status-badge px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-700';
+                badge.textContent = '条件不足';
+                btn.disabled = true;
+                btn.className = 'px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed transition';
+                if (reportType === 'FULL_REPORT') {
+                    btn.className = 'px-6 py-3 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed transition font-medium';
+                }
+                
+                // 添加提示
+                btn.title = data.next_steps ? data.next_steps.join('\n') : '请完善画像信息';
+            }
+        }
+
+        // 渲染历史报告
+        function renderHistoryReports(reports) {
+            const container = document.getElementById('history-list');
+            const emptyState = document.getElementById('empty-history');
+
+            if (!reports || reports.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.innerHTML = reports.map(report => `
+                <div class="glass-card rounded-xl p-4 shadow hover:shadow-lg transition flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900">${report.title}</h4>
+                            <p class="text-sm text-gray-500">${new Date(report.created_at).toLocaleDateString('zh-CN')} · ${report.word_count.toLocaleString()}字</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="report-viewer.html?id=${report.id}" class="px-3 py-1.5 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+                            查看
+                        </a>
+                        <button onclick="downloadReport('${report.id}', 'pdf')" class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                            下载
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 开始生成报告
+        async function startGeneration(reportType) {
+            const data = prerequisitesData[reportType];
+            if (!data || !data.can_generate) {
+                alert('生成条件不满足，请完善画像信息');
+                return;
+            }
+
+            // 跳转到生成页面
+            localStorage.setItem('report_type', reportType);
+            window.location.href = 'report-generation.html';
+        }
+
+        // 下载报告
+        async function downloadReport(reportId, format) {
+            try {
+                const response = await apiService.post(`/user-reports/${reportId}/export/${format}`, {});
+                if (response.code === 200) {
+                    // 触发下载
+                    window.open(response.data.file_url, '_blank');
+                }
+            } catch (error) {
+                console.error('下载报告失败:', error);
+                alert('下载失败，请稍后重试');
+            }
+        }
+
+        // 获取状态文本
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': '等待中',
+                'validating': '验证中',
+                'generating': '生成中',
+                'quality_checking': '质量检查中',
+                'assembling': '组装中',
+                'completed': '已完成',
+                'failed': '失败',
+                'cancelled': '已取消'
+            };
+            return statusMap[status] || status;
+        }
+
+        // 显示错误
+        function showError(message) {
+            document.getElementById('loading-state').innerHTML = `
+                <div class="text-center">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p class="text-gray-600">${message}</p>
+                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                        重试
+                    </button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

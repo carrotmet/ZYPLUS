@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查看报告 - 职业规划导航</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <style>
+        * { font-family: 'Inter', 'Noto Sans SC', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .report-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #374151;
+        }
+        .report-content h1 {
+            font-size: 2em;
+            font-weight: 700;
+            margin: 1.5em 0 0.8em;
+            color: #1f2937;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.3em;
+        }
+        .report-content h2 {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin: 1.3em 0 0.6em;
+            color: #374151;
+        }
+        .report-content h3 {
+            font-size: 1.25em;
+            font-weight: 600;
+            margin: 1.2em 0 0.5em;
+            color: #4b5563;
+        }
+        .report-content p {
+            margin: 0.8em 0;
+        }
+        .report-content ul, .report-content ol {
+            margin: 0.8em 0;
+            padding-left: 2em;
+        }
+        .report-content li {
+            margin: 0.4em 0;
+        }
+        .report-content blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1em;
+            margin: 1em 0;
+            color: #6b7280;
+            background: #f9fafb;
+            padding: 1em;
+            border-radius: 0 8px 8px 0;
+        }
+        .report-content code {
+            background: #f3f4f6;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+        }
+        .report-content pre {
+            background: #f8f9fa;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1em 0;
+        }
+        .report-content pre code {
+            background: none;
+            padding: 0;
+        }
+        .report-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        .report-content th, .report-content td {
+            border: 1px solid #e5e7eb;
+            padding: 0.75em;
+            text-align: left;
+        }
+        .report-content th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+        .toc-link {
+            transition: all 0.2s;
+        }
+        .toc-link:hover {
+            color: #667eea;
+            padding-left: 0.5em;
+        }
+        .toc-link.active {
+            color: #667eea;
+            font-weight: 600;
+            border-left: 3px solid #667eea;
+            padding-left: 0.5em;
+        }
+        .chapter-nav-btn {
+            transition: all 0.3s ease;
+        }
+        .chapter-nav-btn:hover {
+            transform: translateX(4px);
+        }
+        .chapter-nav-btn.prev:hover {
+            transform: translateX(-4px);
+        }
+        .print-only { display: none; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .report-content { font-size: 12pt; line-height: 1.6; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="gradient-bg text-white shadow-lg no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold">职业规划导航</a>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="report-center.html" class="hover:text-gray-200 transition">返回报告中心</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="flex min-h-screen">
+        <!-- 左侧目录 -->
+        <aside class="w-80 bg-white shadow-lg fixed h-full overflow-y-auto no-print" style="top: 64px;">
+            <div class="p-6">
+                <h2 class="text-lg font-bold text-gray-900 mb-4">目录</h2>
+                <div id="toc-container" class="space-y-2 text-sm">
+                    <!-- 动态生成目录 -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- 右侧内容 -->
+        <main class="flex-1 ml-80">
+            <!-- 工具栏 -->
+            <div class="sticky top-0 z-10 bg-white/95 backdrop-blur border-b no-print">
+                <div class="max-w-4xl mx-auto px-8 py-4 flex items-center justify-between">
+                    <div>
+                        <h1 id="report-title" class="text-xl font-bold text-gray-900">加载中...</h1>
+                        <p id="report-meta" class="text-sm text-gray-500 mt-1">--</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="printReport()" class="flex items-center px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                            </svg>
+                            打印
+                        </button>
+                        <div class="relative">
+                            <button onclick="toggleExportMenu()" class="flex items-center px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                                导出
+                            </button>
+                            <div id="export-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border z-20">
+                                <a href="#" onclick="exportReport('pdf')" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 first:rounded-t-lg">导出 PDF</a>
+                                <a href="#" onclick="exportReport('word')" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">导出 Word</a>
+                                <a href="#" onclick="exportReport('markdown')" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 last:rounded-b-lg">导出 Markdown</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 报告内容 -->
+            <div class="max-w-4xl mx-auto px-8 py-12">
+                <!-- 加载状态 -->
+                <div id="loading-state" class="text-center py-20">
+                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mx-auto"></div>
+                    <p class="mt-4 text-gray-600">加载报告中...</p>
+                </div>
+
+                <!-- 打印封面 -->
+                <div class="print-only text-center py-20">
+                    <h1 id="print-title" class="text-4xl font-bold text-gray-900 mb-4"></h1>
+                    <p id="print-meta" class="text-lg text-gray-600"></p>
+                </div>
+
+                <!-- 内容 -->
+                <div id="report-content" class="report-content hidden">
+                    <!-- 动态加载报告内容 -->
+                </div>
+
+                <!-- 章节导航 -->
+                <div id="chapter-nav" class="mt-16 pt-8 border-t no-print hidden">
+                    <div class="flex justify-between">
+                        <button id="prev-chapter" onclick="navigateChapter(-1)" class="chapter-nav-btn prev flex items-center px-6 py-3 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <span>上一章</span>
+                        </button>
+                        <button id="next-chapter" onclick="navigateChapter(1)" class="chapter-nav-btn flex items-center px-6 py-3 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
+                            <span>下一章</span>
+                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="api-service.js"></script>
+    <script>
+        // 全局状态
+        let reportId = null;
+        let reportData = null;
+        let currentChapter = 0;
+        let chapters = [];
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 从URL获取报告ID
+            const urlParams = new URLSearchParams(window.location.search);
+            reportId = urlParams.get('id');
+
+            if (!reportId) {
+                window.location.href = 'report-center.html';
+                return;
+            }
+
+            await loadReport();
+        });
+
+        // 加载报告
+        async function loadReport() {
+            try {
+                const response = await apiService.get(`/user-reports/${reportId}`);
+                if (response.code === 200) {
+                    reportData = response.data;
+                    renderReport();
+                } else {
+                    showError('加载报告失败');
+                }
+            } catch (error) {
+                console.error('加载报告失败:', error);
+                showError('加载报告失败，请稍后重试');
+            }
+        }
+
+        // 渲染报告
+        function renderReport() {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('report-content').classList.remove('hidden');
+            document.getElementById('chapter-nav').classList.remove('hidden');
+
+            // 标题
+            document.getElementById('report-title').textContent = reportData.title;
+            document.getElementById('print-title').textContent = reportData.title;
+
+            // 元信息
+            const metaText = `${new Date(reportData.created_at).toLocaleDateString('zh-CN')} · ${reportData.metadata.word_count.toLocaleString()}字 · ${reportData.metadata.chapter_count}章节`;
+            document.getElementById('report-meta').textContent = metaText;
+            document.getElementById('print-meta').textContent = metaText;
+
+            // 章节数据
+            chapters = reportData.chapters.sort((a, b) => a.order_num - b.order_num);
+
+            // 生成目录
+            generateTOC();
+
+            // 加载内容
+            loadReportContent();
+        }
+
+        // 生成目录
+        function generateTOC() {
+            const container = document.getElementById('toc-container');
+            container.innerHTML = chapters.map((chapter, index) => `
+                <a href="#chapter-${index}" 
+                   onclick="scrollToChapter(${index}); return false;"
+                   class="toc-link block py-1.5 text-gray-600 hover:text-indigo-600 cursor-pointer ${chapter.level > 1 ? 'ml-' + ((chapter.level - 1) * 4) : ''}"
+                   data-index="${index}">
+                    ${chapter.title}
+                </a>
+            `).join('');
+        }
+
+        // 加载报告内容
+        async function loadReportContent() {
+            try {
+                const response = await apiService.get(`/user-reports/${reportId}/content?format=markdown`);
+                if (response.code === 200) {
+                    const content = response.data.content;
+                    const html = marked.parse(content);
+                    document.getElementById('report-content').innerHTML = html;
+
+                    // 高亮代码块
+                    document.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+
+                    // 添加章节锚点
+                    addChapterAnchors();
+
+                    // 监听滚动
+                    setupScrollSpy();
+                }
+            } catch (error) {
+                console.error('加载内容失败:', error);
+            }
+        }
+
+        // 添加章节锚点
+        function addChapterAnchors() {
+            const headings = document.querySelectorAll('.report-content h1, .report-content h2, .report-content h3');
+            headings.forEach((heading, index) => {
+                heading.id = `chapter-${index}`;
+            });
+        }
+
+        // 滚动到章节
+        function scrollToChapter(index) {
+            const element = document.getElementById(`chapter-${index}`);
+            if (element) {
+                const offset = 100; // 导航栏高度
+                const elementPosition = element.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+
+                currentChapter = index;
+                updateTOCActive();
+                updateChapterNav();
+            }
+        }
+
+        // 设置滚动监听
+        function setupScrollSpy() {
+            const headings = document.querySelectorAll('.report-content h1, .report-content h2');
+            
+            window.addEventListener('scroll', () => {
+                const scrollPos = window.scrollY + 150;
+                
+                headings.forEach((heading, index) => {
+                    if (heading.offsetTop <= scrollPos) {
+                        currentChapter = index;
+                    }
+                });
+
+                updateTOCActive();
+                updateChapterNav();
+            });
+        }
+
+        // 更新目录激活状态
+        function updateTOCActive() {
+            document.querySelectorAll('.toc-link').forEach((link, index) => {
+                if (index === currentChapter) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        // 更新章节导航
+        function updateChapterNav() {
+            const prevBtn = document.getElementById('prev-chapter');
+            const nextBtn = document.getElementById('next-chapter');
+
+            if (currentChapter === 0) {
+                prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            if (currentChapter >= chapters.length - 1) {
+                nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // 章节导航
+        function navigateChapter(direction) {
+            const newIndex = currentChapter + direction;
+            if (newIndex >= 0 && newIndex < chapters.length) {
+                scrollToChapter(newIndex);
+            }
+        }
+
+        // 打印报告
+        function printReport() {
+            window.print();
+        }
+
+        // 切换导出菜单
+        function toggleExportMenu() {
+            const menu = document.getElementById('export-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // 导出报告
+        async function exportReport(format) {
+            toggleExportMenu();
+
+            try {
+                if (format === 'markdown') {
+                    // 直接下载Markdown
+                    window.open(`/api/user-reports/${reportId}/export/markdown`, '_blank');
+                } else {
+                    const response = await apiService.post(`/user-reports/${reportId}/export/${format}`, {});
+                    if (response.code === 200) {
+                        window.open(response.data.file_url, '_blank');
+                    }
+                }
+            } catch (error) {
+                console.error('导出失败:', error);
+                alert('导出失败，请稍后重试');
+            }
+        }
+
+        // 显示错误
+        function showError(message) {
+            document.getElementById('loading-state').innerHTML = `
+                <div class="text-center">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p class="text-gray-600">${message}</p>
+                    <a href="report-center.html" class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                        返回报告中心
+                    </a>
+                </div>
+            `;
+        }
+
+        // 点击外部关闭导出菜单
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('export-menu');
+            const btn = e.target.closest('button');
+            if (!btn || !btn.textContent.includes('导出')) {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

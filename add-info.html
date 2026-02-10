@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信息管理 - 职业规划导航</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --primary-blue: #4A90E4;
+            --light-blue: #7BB3F0;
+            --pale-blue: #A8C8EC;
+            --very-light-blue: #D6E3F8;
+            --text-dark: #2C3E50;
+            --text-light: #7F8C8D;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, var(--very-light-blue) 0%, #F8FAFC 100%);
+            min-height: 100vh;
+        }
+        
+        .page-title {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(74, 144, 228, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .form-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(74, 144, 228, 0.15);
+        }
+        
+        .toggle-btn {
+            background: var(--very-light-blue);
+            border: 2px solid var(--pale-blue);
+            border-radius: 12px;
+            padding: 12px 24px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .toggle-btn.active {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: white;
+        }
+        
+        .form-input {
+            border: 2px solid var(--pale-blue);
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(74, 144, 228, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 144, 228, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            border: 2px solid var(--pale-blue);
+            border-radius: 12px;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+        
+        .preview-card {
+            background: var(--very-light-blue);
+            border-radius: 12px;
+            border: 2px dashed var(--pale-blue);
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .preview-card.has-content {
+            background: white;
+            border: 2px solid var(--pale-blue);
+        }
+        
+        .tag-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px;
+            border: 2px solid var(--pale-blue);
+            border-radius: 12px;
+            min-height: 48px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .tag-input:focus-within {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(74, 144, 228, 0.1);
+        }
+        
+        .tag {
+            background: var(--primary-blue);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .tag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s ease;
+        }
+        
+        .success-message {
+            background: linear-gradient(135deg, #10B981, #34D399);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: none;
+        }
+        
+        .error-message {
+            background: linear-gradient(135deg, #EF4444, #F87171);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-graduation-cap text-white text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold text-gray-800">职业规划导航</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-gray-600 hover:text-blue-600 transition-colors">专业选择</a>
+                    <a href="major-detail.html" class="text-gray-600 hover:text-blue-600 transition-colors">职业详情</a>
+                    <a href="add-info.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">信息管理</a>
+                </div>
+                
+                <button onclick="history.back()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    返回
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 页面标题 -->
+        <div class="text-center mb-12 fade-in">
+            <h1 class="page-title text-4xl font-bold mb-4">信息管理</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                添加新的专业、职业信息或个人经历，丰富我们的数据库，帮助更多的学生做出明智的职业选择
+            </p>
+        </div>
+
+        <!-- 消息提示 -->
+        <div id="successMessage" class="success-message">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="successText">信息添加成功！</span>
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span id="errorText">请填写完整的信息！</span>
+        </div>
+
+        <!-- 功能选择区域 -->
+        <section class="mb-12 fade-in">
+            <div class="flex justify-center space-x-4">
+                <button class="toggle-btn active" id="majorBtn" onclick="toggleForm('major')">
+                    <i class="fas fa-graduation-cap mr-2"></i>
+                    添加专业信息
+                </button>
+                <button class="toggle-btn" id="occupationBtn" onclick="toggleForm('occupation')">
+                    <i class="fas fa-briefcase mr-2"></i>
+                    添加职业信息
+                </button>
+                <button class="toggle-btn" id="experienceBtn" onclick="toggleForm('experience')">
+                    <i class="fas fa-user mr-2"></i>
+                    添加个人经历
+                </button>
+            </div>
+        </section>
+
+        <!-- 表单区域 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- 左侧：表单 -->
+            <div class="fade-in">
+                <!-- 专业信息表单 -->
+                <div id="majorForm" class="form-card p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-plus-circle text-blue-500 mr-3"></i>
+                        添加专业信息
+                    </h2>
+                    
+                    <form id="majorInfoForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">专业名称 *</label>
+                                <input type="text" id="majorName" class="form-input w-full" placeholder="请输入专业名称" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">专业代码</label>
+                                <input type="text" id="majorCode" class="form-input w-full" placeholder="如：080901">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">学科门类 *</label>
+                                <select id="majorDiscipline" class="form-input w-full" required>
+                                    <option value="">请选择学科门类</option>
+                                    <option value="哲学">哲学</option>
+                                    <option value="经济学">经济学</option>
+                                    <option value="法学">法学</option>
+                                    <option value="教育学">教育学</option>
+                                    <option value="文学">文学</option>
+                                    <option value="历史学">历史学</option>
+                                    <option value="理学">理学</option>
+                                    <option value="工学">工学</option>
+                                    <option value="农学">农学</option>
+                                    <option value="医学">医学</option>
+                                    <option value="管理学">管理学</option>
+                                    <option value="艺术学">艺术学</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">学制年限 *</label>
+                                <select id="majorDuration" class="form-input w-full" required>
+                                    <option value="">请选择学制</option>
+                                    <option value="3">3年</option>
+                                    <option value="4">4年</option>
+                                    <option value="5">5年</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">专业简介 *</label>
+                            <textarea id="majorDescription" class="form-input form-textarea w-full" placeholder="请描述该专业的培养目标、主要方向等" required></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">主要课程 *</label>
+                            <div class="tag-input" id="majorCoursesContainer">
+                                <input type="text" id="majorCourseInput" class="flex-1 border-none outline-none bg-transparent" placeholder="输入课程名称后按回车">
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">输入课程名称后按回车键添加</p>
+                        </div>
+                        
+                        <div class="flex space-x-4">
+                            <button type="submit" class="btn-primary px-6 py-3 flex-1">
+                                <i class="fas fa-save mr-2"></i>
+                                提交专业信息
+                            </button>
+                            <button type="button" class="btn-secondary px-6 py-3" onclick="resetMajorForm()">
+                                <i class="fas fa-undo mr-2"></i>
+                                重置
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 职业信息表单 -->
+                <div id="occupationForm" class="form-card p-8 hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-plus-circle text-blue-500 mr-3"></i>
+                        添加职业信息
+                    </h2>
+                    
+                    <form id="occupationInfoForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">职业名称 *</label>
+                                <input type="text" id="occupationName" class="form-input w-full" placeholder="请输入职业名称" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">所属行业 *</label>
+                                <select id="occupationIndustry" class="form-input w-full" required>
+                                    <option value="">请选择所属行业</option>
+                                    <option value="IT互联网">IT互联网</option>
+                                    <option value="金融服务">金融服务</option>
+                                    <option value="教育培训">教育培训</option>
+                                    <option value="医疗健康">医疗健康</option>
+                                    <option value="制造业">制造业</option>
+                                    <option value="房地产">房地产</option>
+                                    <option value="零售电商">零售电商</option>
+                                    <option value="文化传媒">文化传媒</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">最低薪资 (元/月) *</label>
+                                <input type="number" id="salaryMin" class="form-input w-full" placeholder="如：8000" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">最高薪资 (元/月) *</label>
+                                <input type="number" id="salaryMax" class="form-input w-full" placeholder="如：30000" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">职业描述 *</label>
+                            <textarea id="occupationDescription" class="form-input form-textarea w-full" placeholder="请描述该职业的工作内容、职责等" required></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">核心要求 *</label>
+                            <div class="tag-input" id="occupationRequirementsContainer">
+                                <input type="text" id="occupationRequirementInput" class="flex-1 border-none outline-none bg-transparent" placeholder="输入要求后按回车">
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">输入核心要求后按回车键添加</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">相关专业</label>
+                            <select id="relatedMajors" class="form-input w-full" multiple size="4">
+                                <option value="80101">计算机科学与技术</option>
+                                <option value="80102">软件工程</option>
+                                <option value="20101">经济学</option>
+                                <option value="20201">金融学</option>
+                                <option value="120101">视觉传达设计</option>
+                                <option value="80201">电子信息工程</option>
+                            </select>
+                            <p class="text-sm text-gray-500 mt-2">按住Ctrl键可选择多个专业</p>
+                        </div>
+                        
+                        <div class="flex space-x-4">
+                            <button type="submit" class="btn-primary px-6 py-3 flex-1">
+                                <i class="fas fa-save mr-2"></i>
+                                提交职业信息
+                            </button>
+                            <button type="button" class="btn-secondary px-6 py-3" onclick="resetOccupationForm()">
+                                <i class="fas fa-undo mr-2"></i>
+                                重置
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 个人经历表单 -->
+                <div id="experienceForm" class="form-card p-8 hidden">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-plus-circle text-blue-500 mr-3"></i>
+                        添加个人经历
+                    </h2>
+                    
+                    <form id="experienceInfoForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">昵称 *</label>
+                                <input type="text" id="experienceNickname" class="form-input w-full" placeholder="请输入您的昵称" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">学历 *</label>
+                                <select id="experienceEducation" class="form-input w-full" required>
+                                    <option value="">请选择学历</option>
+                                    <option value="学士">学士</option>
+                                    <option value="硕士">硕士</option>
+                                    <option value="博士">博士</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">专业 *</label>
+                                <select id="experienceMajor" class="form-input w-full" required>
+                                    <option value="">请选择专业</option>
+                                    <option value="80101">计算机科学与技术</option>
+                                    <option value="20101">经济学</option>
+                                    <option value="20201">金融学</option>
+                                    <option value="120101">视觉传达设计</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">学校名称 *</label>
+                                <input type="text" id="experienceSchool" class="form-input w-full" placeholder="请输入学校名称" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">学位</label>
+                            <input type="text" id="experienceDegree" class="form-input w-full" placeholder="如：计算机科学与技术学士">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">个人经历 *</label>
+                            <textarea id="experienceDetail" class="form-input form-textarea w-full" placeholder="请详细描述您的学习和工作经历，包括职业发展、经验分享等" required></textarea>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="experienceAnonymous" class="mr-2">
+                            <label for="experienceAnonymous" class="text-sm text-gray-700">匿名发布</label>
+                        </div>
+                        
+                        <div class="flex space-x-4">
+                            <button type="submit" class="btn-primary px-6 py-3 flex-1">
+                                <i class="fas fa-save mr-2"></i>
+                                提交个人经历
+                            </button>
+                            <button type="button" class="btn-secondary px-6 py-3" onclick="resetExperienceForm()">
+                                <i class="fas fa-undo mr-2"></i>
+                                重置
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 右侧：预览 -->
+            <div class="fade-in">
+                <div class="form-card p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-eye text-blue-500 mr-3"></i>
+                        实时预览
+                    </h2>
+                    
+                    <div class="preview-card" id="previewCard">
+                        <div class="text-center text-gray-500">
+                            <i class="fas fa-pencil-alt text-4xl mb-4"></i>
+                            <p>填写左侧表单查看预览效果</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最近添加 -->
+                <div class="form-card p-8 mt-8">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-history text-blue-500 mr-3"></i>
+                        最近添加
+                    </h3>
+                    
+                    <div class="space-y-4" id="recentlyAdded">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold text-gray-800">人工智能</h4>
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">专业</span>
+                            </div>
+                            <p class="text-sm text-gray-600">新增专业 · 2小时前</p>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold text-gray-800">区块链工程师</h4>
+                                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">职业</span>
+                            </div>
+                            <p class="text-sm text-gray-600">新增职业 · 1天前</p>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold text-gray-800">张同学的经历分享</h4>
+                                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">经历</span>
+                            </div>
+                            <p class="text-sm text-gray-600">新增个人经历 · 3天前</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-600">&copy; 2024 职业规划导航平台. 助力您的职业发展之路</p>
+        </div>
+    </footer>
+
+    <script src="api-service.js"></script>
+    <script src="add-info.js"></script>
+</body>
+</html>

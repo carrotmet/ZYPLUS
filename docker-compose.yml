@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # 后端API服务
+  backend:
+    build: ./backend
+    container_name: career-guidance-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=sqlite:///app/data/career_guidance.db
+    restart: unless-stopped
+    networks:
+      - career-guidance-network
+
+  # 前端Web服务
+  frontend:
+    build: .
+    container_name: career-guidance-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./logs:/var/log/nginx
+      - ./resources:/usr/share/nginx/html/resources
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - career-guidance-network
+
+  # 数据库服务（可选，用于开发环境）
+  database:
+    image: sqlite:latest
+    container_name: career-guidance-db
+    volumes:
+      - ./data:/data
+    networks:
+      - career-guidance-network
+    profiles:
+      - dev
+
+networks:
+  career-guidance-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local
+  data:
+    driver: local

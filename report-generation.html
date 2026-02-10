@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生成报告 - 职业规划导航</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', 'Noto Sans SC', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        .progress-bar-animated {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background-size: 200% 100%;
+            animation: gradient-shift 2s ease infinite;
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .chapter-status-pending { @apply bg-gray-100 text-gray-500; }
+        .chapter-status-generating { @apply bg-indigo-100 text-indigo-600 animate-pulse; }
+        .chapter-status-completed { @apply bg-green-100 text-green-600; }
+        .chapter-status-failed { @apply bg-red-100 text-red-600; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold">职业规划导航</a>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="report-center.html" class="hover:text-gray-200 transition">返回报告中心</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- 初始化状态 -->
+        <div id="init-state" class="text-center py-20">
+            <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">准备生成报告</h2>
+            <p class="text-gray-600 mb-8">正在初始化生成任务...</p>
+            <div class="animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent mx-auto"></div>
+        </div>
+
+        <!-- 生成中状态 -->
+        <div id="generating-state" class="hidden">
+            <!-- 进度概览 -->
+            <div class="glass-card rounded-2xl p-8 shadow-lg mb-8">
+                <div class="text-center mb-8">
+                    <div class="relative w-32 h-32 mx-auto mb-6">
+                        <div class="absolute inset-0 rounded-full border-4 border-indigo-100"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin" style="animation-duration: 3s;"></div>
+                        <div class="absolute inset-4 rounded-full bg-indigo-50 flex items-center justify-center">
+                            <span id="overall-progress-text" class="text-3xl font-bold text-indigo-600">0%</span>
+                        </div>
+                    </div>
+                    <h2 id="generation-title" class="text-2xl font-bold text-gray-900 mb-2">正在生成报告...</h2>
+                    <p id="current-stage-text" class="text-gray-600">准备中</p>
+                </div>
+
+                <!-- 进度条 -->
+                <div class="mb-6">
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-gray-600">总体进度</span>
+                        <span id="progress-detail" class="font-medium text-gray-800">0/12 章节</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div id="overall-progress-bar" class="progress-bar-animated h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- 预计时间 -->
+                <div class="flex justify-center space-x-8 text-sm text-gray-600">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>已用时间: <span id="elapsed-time">00:00</span></span>
+                    </div>
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span>预计字数: <span id="estimated-words">--</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 章节状态列表 -->
+            <div class="glass-card rounded-2xl p-6 shadow-lg">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">章节生成状态</h3>
+                <div id="chapters-list" class="space-y-3">
+                    <!-- 动态生成章节状态 -->
+                </div>
+            </div>
+
+            <!-- 取消按钮 -->
+            <div class="mt-8 text-center">
+                <button id="cancel-btn" onclick="cancelGeneration()" class="px-6 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition font-medium">
+                    取消生成
+                </button>
+            </div>
+        </div>
+
+        <!-- 完成状态 -->
+        <div id="completed-state" class="hidden text-center py-12">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">报告生成完成!</h2>
+            <p class="text-gray-600 mb-2">您的<span id="completed-report-type"></span>已生成完毕</p>
+            <p class="text-sm text-gray-500 mb-8">总字数: <span id="completed-word-count"></span> · 耗时: <span id="completed-time"></span></p>
+            
+            <div class="flex justify-center space-x-4">
+                <a id="view-report-btn" href="#" class="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">
+                    查看报告
+                </a>
+                <button onclick="backToCenter()" class="px-8 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium">
+                    返回报告中心
+                </button>
+            </div>
+        </div>
+
+        <!-- 失败状态 -->
+        <div id="failed-state" class="hidden text-center py-12">
+            <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">生成失败</h2>
+            <p id="failed-reason" class="text-gray-600 mb-8">抱歉，报告生成过程中出现错误</p>
+            
+            <div class="flex justify-center space-x-4">
+                <button onclick="retryGeneration()" class="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">
+                    重试
+                </button>
+                <button onclick="backToCenter()" class="px-8 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium">
+                    返回报告中心
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="api-service.js"></script>
+    <script>
+        // 全局状态
+        let taskId = null;
+        let reportId = null;
+        let reportType = null;
+        let wsConnection = null;
+        let startTime = null;
+        let elapsedTimer = null;
+
+        // 报告类型映射
+        const reportTypeNames = {
+            'SUB_REPORT_A': '用户画像深度分析报告',
+            'SUB_REPORT_B': '用户表单分析报告',
+            'SUB_REPORT_C': '三层职业规划建模报告',
+            'SUB_REPORT_D': '分层递进行动体系报告',
+            'FULL_REPORT': '职业规划完整报告'
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            reportType = localStorage.getItem('report_type');
+            if (!reportType) {
+                window.location.href = 'report-center.html';
+                return;
+            }
+
+            document.getElementById('generation-title').textContent = 
+                `正在生成${reportTypeNames[reportType]}...`;
+
+            // 启动生成
+            await startGeneration();
+        });
+
+        // 启动生成
+        async function startGeneration() {
+            try {
+                const response = await apiService.post('/user-reports/generation', {
+                    report_type: reportType,
+                    options: {
+                        include_charts: true,
+                        detail_level: 'detailed',
+                        language: 'zh-CN'
+                    }
+                });
+
+                if (response.code === 200) {
+                    taskId = response.data.task_id;
+                    reportId = response.data.report_id;
+                    startTime = Date.now();
+
+                    // 保存任务ID
+                    localStorage.setItem('current_task_id', taskId);
+                    localStorage.setItem('current_report_id', reportId);
+
+                    // 切换到生成中状态
+                    document.getElementById('init-state').classList.add('hidden');
+                    document.getElementById('generating-state').classList.remove('hidden');
+
+                    // 启动计时器
+                    startElapsedTimer();
+
+                    // 连接WebSocket
+                    connectWebSocket(response.data.websocket_url);
+
+                    // 初始化章节列表
+                    initializeChapters();
+                } else {
+                    showFailed('启动生成失败: ' + response.message);
+                }
+            } catch (error) {
+                console.error('启动生成失败:', error);
+                showFailed('启动生成失败，请稍后重试');
+            }
+        }
+
+        // 连接WebSocket
+        function connectWebSocket(wsUrl) {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const fullUrl = `${protocol}//${window.location.host}${wsUrl}`;
+            
+            wsConnection = new WebSocket(fullUrl);
+
+            wsConnection.onopen = () => {
+                console.log('WebSocket connected');
+            };
+
+            wsConnection.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleWebSocketMessage(message);
+            };
+
+            wsConnection.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                // 回退到轮询
+                startPolling();
+            };
+
+            wsConnection.onclose = () => {
+                console.log('WebSocket closed');
+            };
+        }
+
+        // 处理WebSocket消息
+        function handleWebSocketMessage(message) {
+            switch (message.type) {
+                case 'progress_update':
+                    updateProgress(message.data);
+                    break;
+                case 'chapter_complete':
+                    updateChapterStatus(message.data.chapter_id, 'completed');
+                    break;
+                case 'stage_change':
+                    document.getElementById('current-stage-text').textContent = 
+                        getStageText(message.data.stage);
+                    break;
+                case 'completed':
+                    showCompleted(message.data);
+                    break;
+                case 'error':
+                    showFailed(message.data.message);
+                    break;
+                case 'cancelled':
+                    window.location.href = 'report-center.html';
+                    break;
+            }
+        }
+
+        // 轮询更新（WebSocket失败时的回退）
+        function startPolling() {
+            const pollInterval = setInterval(async () => {
+                if (!taskId) {
+                    clearInterval(pollInterval);
+                    return;
+                }
+
+                try {
+                    const response = await apiService.get(`/user-reports/generation/${taskId}`);
+                    if (response.code === 200) {
+                        const data = response.data;
+                        updateProgress(data.progress);
+                        
+                        if (data.status === 'completed') {
+                            clearInterval(pollInterval);
+                            showCompleted(data.result);
+                        } else if (data.status === 'failed') {
+                            clearInterval(pollInterval);
+                            showFailed(data.error?.message || '生成失败');
+                        }
+                    }
+                } catch (error) {
+                    console.error('轮询失败:', error);
+                }
+            }, 2000);
+        }
+
+        // 更新进度
+        function updateProgress(data) {
+            const overall = data.overall_progress || 0;
+            document.getElementById('overall-progress-text').textContent = overall + '%';
+            document.getElementById('overall-progress-bar').style.width = overall + '%';
+
+            if (data.current_stage) {
+                document.getElementById('current-stage-text').textContent = 
+                    getStageText(data.current_stage);
+            }
+
+            if (data.completed_chapters !== undefined && data.total_chapters) {
+                document.getElementById('progress-detail').textContent = 
+                    `${data.completed_chapters}/${data.total_chapters} 章节`;
+            }
+
+            if (data.current_chapter) {
+                updateChapterStatus(data.current_chapter.id, 'generating');
+            }
+        }
+
+        // 初始化章节列表
+        function initializeChapters() {
+            // 根据报告类型生成章节列表
+            const chapters = getChaptersForType(reportType);
+            const container = document.getElementById('chapters-list');
+            
+            container.innerHTML = chapters.map((chapter, index) => `
+                <div id="chapter-${index}" class="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                    <div class="flex items-center space-x-3">
+                        <div class="chapter-status-icon w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                            <span class="text-xs text-gray-500">${index + 1}</span>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">${chapter}</span>
+                    </div>
+                    <span class="chapter-status-text text-xs text-gray-500">等待中</span>
+                </div>
+            `).join('');
+        }
+
+        // 获取章节列表
+        function getChaptersForType(type) {
+            const chapters = {
+                'SUB_REPORT_A': ['接口层画像解析', 'Holland职业兴趣分析', 'MBTI性格类型分析', '价值观优先级分析', '能力评估矩阵', '可变层画像解析', '三层画像综合解读'],
+                'SUB_REPORT_B': ['表单填写历史回顾', '数据一致性与演变分析', 'CASVE决策阶段追踪', '用户关注焦点识别'],
+                'SUB_REPORT_C': ['接口层建模', '可变层建模', '核心层建模', '专业理论体系适配', '职业路径分化分析', '实践途径组合设计', '终身学习机制规划'],
+                'SUB_REPORT_D': ['Layer 1行动计划', 'Layer 2行动计划', 'Layer 3行动计划', 'Layer 4行动计划'],
+                'FULL_REPORT': ['执行摘要', '用户画像深度分析', '用户表单分析', '三层职业规划建模', '分层递进行动体系', '职业发展路径推荐', '风险评估与应对策略', '附录']
+            };
+            return chapters[type] || [];
+        }
+
+        // 更新章节状态
+        function updateChapterStatus(chapterId, status) {
+            // 简化处理：根据进度更新章节状态
+            const progress = parseInt(document.getElementById('overall-progress-text').textContent);
+            const chapters = document.querySelectorAll('#chapters-list > div');
+            const completedCount = Math.floor(progress / 100 * chapters.length);
+
+            chapters.forEach((chapter, index) => {
+                const icon = chapter.querySelector('.chapter-status-icon');
+                const text = chapter.querySelector('.chapter-status-text');
+
+                if (index < completedCount) {
+                    icon.className = 'chapter-status-icon w-6 h-6 rounded-full bg-green-100 flex items-center justify-center';
+                    icon.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+                    text.textContent = '已完成';
+                    text.className = 'chapter-status-text text-xs text-green-600';
+                } else if (index === completedCount && status === 'generating') {
+                    icon.className = 'chapter-status-icon w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center animate-pulse';
+                    icon.innerHTML = '<div class="w-3 h-3 bg-indigo-600 rounded-full"></div>';
+                    text.textContent = '生成中...';
+                    text.className = 'chapter-status-text text-xs text-indigo-600';
+                }
+            });
+        }
+
+        // 启动计时器
+        function startElapsedTimer() {
+            elapsedTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                document.getElementById('elapsed-time').textContent = `${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        // 显示完成
+        function showCompleted(data) {
+            clearInterval(elapsedTimer);
+            if (wsConnection) wsConnection.close();
+
+            document.getElementById('generating-state').classList.add('hidden');
+            document.getElementById('completed-state').classList.remove('hidden');
+
+            document.getElementById('completed-report-type').textContent = reportTypeNames[reportType];
+            document.getElementById('completed-word-count').textContent = data.word_count?.toLocaleString() || '--';
+            document.getElementById('completed-time').textContent = document.getElementById('elapsed-time').textContent;
+            document.getElementById('view-report-btn').href = `report-viewer.html?id=${reportId}`;
+
+            // 清除localStorage
+            localStorage.removeItem('current_task_id');
+            localStorage.removeItem('report_type');
+        }
+
+        // 显示失败
+        function showFailed(reason) {
+            clearInterval(elapsedTimer);
+            if (wsConnection) wsConnection.close();
+
+            document.getElementById('init-state').classList.add('hidden');
+            document.getElementById('generating-state').classList.add('hidden');
+            document.getElementById('failed-state').classList.remove('hidden');
+
+            document.getElementById('failed-reason').textContent = reason;
+        }
+
+        // 取消生成
+        async function cancelGeneration() {
+            if (!confirm('确定要取消生成吗？已生成的内容将不会保存。')) {
+                return;
+            }
+
+            try {
+                await apiService.post(`/user-reports/generation/${taskId}/cancel`, {});
+                window.location.href = 'report-center.html';
+            } catch (error) {
+                console.error('取消失败:', error);
+                alert('取消失败，请稍后重试');
+            }
+        }
+
+        // 重试生成
+        function retryGeneration() {
+            document.getElementById('failed-state').classList.add('hidden');
+            document.getElementById('init-state').classList.remove('hidden');
+            startGeneration();
+        }
+
+        // 返回报告中心
+        function backToCenter() {
+            window.location.href = 'report-center.html';
+        }
+
+        // 获取阶段文本
+        function getStageText(stage) {
+            const stageMap = {
+                'prerequisites_check': '条件检查中',
+                'data_preparation': '数据准备中',
+                'chapter_generation': '章节生成中',
+                'quality_validation': '质量校验中',
+                'content_assembly': '报告组装中',
+                'metadata_update': '完成中'
+            };
+            return stageMap[stage] || stage;
+        }
+    </script>
+</body>
+</html>

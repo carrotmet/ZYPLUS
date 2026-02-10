@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>职业详情 - 职业规划导航</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --primary-blue: #4A90E4;
+            --light-blue: #7BB3F0;
+            --pale-blue: #A8C8EC;
+            --very-light-blue: #D6E3F8;
+            --text-dark: #2C3E50;
+            --text-light: #7F8C8D;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, var(--very-light-blue) 0%, #F8FAFC 100%);
+            min-height: 100vh;
+        }
+        
+        .page-title {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .detail-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(74, 144, 228, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .detail-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(74, 144, 228, 0.15);
+        }
+        
+        .occupation-card {
+            background: white;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .occupation-card:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(74, 144, 228, 0.15);
+        }
+        
+        .occupation-card.selected {
+            border-color: var(--primary-blue);
+            background: var(--very-light-blue);
+        }
+        
+        .career-path-item {
+            background: linear-gradient(135deg, var(--pale-blue), var(--light-blue));
+            border-radius: 12px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .career-path-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            pointer-events: none;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(74, 144, 228, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 144, 228, 0.3);
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s ease;
+        }
+        
+        .path-connector {
+            width: 2px;
+            background: linear-gradient(to bottom, var(--primary-blue), var(--light-blue));
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-graduation-cap text-white text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold text-gray-800">职业规划导航</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-gray-600 hover:text-blue-600 transition-colors">专业选择</a>
+                    <a href="major-detail.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">职业详情</a>
+                    <a href="add-info.html" class="text-gray-600 hover:text-blue-600 transition-colors">信息管理</a>
+                </div>
+                
+                <button onclick="history.back()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    返回
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 页面标题 -->
+        <div class="text-center mb-12 fade-in">
+            <h1 class="page-title text-4xl font-bold mb-4">职业详情分析</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                深入了解各个职业的详细信息，包括职业发展路径、薪资趋势和就业前景
+            </p>
+        </div>
+
+        <!-- 最新添加的职业 -->
+        <section class="mb-12 fade-in" id="newlyAddedOccupations">
+            <!-- 新增职业将在这里显示 -->
+        </section>
+
+        <!-- 职业选择区域 -->
+        <section class="mb-12 fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">选择职业方向</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="occupationCards">
+                <!-- 职业卡片将动态生成 -->
+            </div>
+        </section>
+
+        <!-- 职业详情展示区域 -->
+        <div id="occupationDetails" class="hidden">
+            <!-- 基本信息卡片 -->
+            <section class="mb-8 fade-in">
+                <div class="detail-card p-8">
+                    <div class="flex items-start justify-between mb-6">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2" id="occupationName"></h2>
+                            <p class="text-gray-600" id="occupationIndustry"></p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold text-green-600" id="occupationSalary"></div>
+                            <div class="text-sm text-gray-500">月薪范围</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">职业描述</h3>
+                        <p class="text-gray-600 leading-relaxed" id="occupationDescription"></p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">核心要求</h3>
+                        <div class="flex flex-wrap gap-2" id="occupationRequirements">
+                            <!-- 要求标签 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 职业发展路径 -->
+            <section class="mb-8 fade-in">
+                <div class="detail-card p-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-route text-blue-500 mr-3"></i>
+                        职业发展路径
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="careerPath">
+                        <!-- 职业路径卡片 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 薪资趋势图表 -->
+            <section class="mb-8 fade-in">
+                <div class="chart-container">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-chart-line text-blue-500 mr-3"></i>
+                        薪资发展趋势
+                    </h3>
+                    <div id="salaryChart" style="height: 400px;"></div>
+                </div>
+            </section>
+
+            <!-- 就业前景分析 -->
+            <section class="mb-8 fade-in">
+                <div class="detail-card p-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-chart-pie text-blue-500 mr-3"></i>
+                        就业前景分析
+                    </h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">行业需求趋势</h4>
+                            <div id="industryChart" style="height: 300px;"></div>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">技能要求分布</h4>
+                            <div id="skillsChart" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 相关推荐 -->
+            <section class="fade-in">
+                <div class="detail-card p-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-lightbulb text-yellow-500 mr-3"></i>
+                        相关推荐
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="relatedRecommendations">
+                        <!-- 推荐内容 -->
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-600">&copy; 2024 职业规划导航平台. 助力您的职业发展之路</p>
+        </div>
+    </footer>
+
+    <script src="api-service.js"></script>
+    <script>
+        // 职业数据 (与main.js中相同)
+        const occupations = [
+            {
+                id: 1,
+                name: '软件工程师',
+                industry: 'IT互联网',
+                description: '负责软件系统的设计、开发、测试和维护工作，需要具备扎实的编程基础和良好的逻辑思维能力',
+                requirements: ['编程能力', '算法基础', '团队协作', '持续学习'],
+                salaryMin: 12000,
+                salaryMax: 50000,
+                careerPath: [
+                    { level: '初级', title: '初级软件工程师', experienceMin: 0, experienceMax: 2, avgSalary: 15000 },
+                    { level: '中级', title: '软件工程师', experienceMin: 2, experienceMax: 5, avgSalary: 25000 },
+                    { level: '高级', title: '高级软件工程师', experienceMin: 5, experienceMax: 8, avgSalary: 35000 },
+                    { level: '专家', title: '技术专家/架构师', experienceMin: 8, experienceMax: 15, avgSalary: 50000 }
+                ]
+            },
+            {
+                id: 2,
+                name: '数据分析师',
+                industry: 'IT互联网',
+                description: '负责数据收集、处理、分析和可视化，为决策提供数据支持，需要统计学基础和编程能力',
+                requirements: ['统计学', '编程能力', '数据可视化', '业务理解'],
+                salaryMin: 10000,
+                salaryMax: 40000,
+                careerPath: [
+                    { level: '初级', title: '数据分析师', experienceMin: 0, experienceMax: 2, avgSalary: 12000 },
+                    { level: '中级', title: '高级数据分析师', experienceMin: 2, experienceMax: 5, avgSalary: 20000 },
+                    { level: '高级', title: '数据科学家', experienceMin: 5, experienceMax: 8, avgSalary: 30000 },
+                    { level: '专家', title: '首席数据科学家', experienceMin: 8, experienceMax: 15, avgSalary: 40000 }
+                ]
+            },
+            {
+                id: 3,
+                name: 'UI/UX设计师',
+                industry: 'IT互联网',
+                description: '负责用户界面和用户体验设计，提升产品易用性和美观度，需要创意和用户研究能力',
+                requirements: ['设计能力', '用户研究', '原型设计', '团队协作'],
+                salaryMin: 8000,
+                salaryMax: 30000,
+                careerPath: [
+                    { level: '初级', title: 'UI设计师', experienceMin: 0, experienceMax: 2, avgSalary: 10000 },
+                    { level: '中级', title: '高级UI设计师', experienceMin: 2, experienceMax: 5, avgSalary: 18000 },
+                    { level: '高级', title: 'UX设计师', experienceMin: 5, experienceMax: 8, avgSalary: 25000 },
+                    { level: '专家', title: '设计总监', experienceMin: 8, experienceMax: 15, avgSalary: 30000 }
+                ]
+            },
+            {
+                id: 4,
+                name: '金融分析师',
+                industry: '金融服务',
+                description: '负责金融市场分析、投资研究和风险评估，为投资决策提供专业建议',
+                requirements: ['金融知识', '分析能力', '数学统计', '沟通能力'],
+                salaryMin: 15000,
+                salaryMax: 60000,
+                careerPath: [
+                    { level: '初级', title: '分析师助理', experienceMin: 0, experienceMax: 2, avgSalary: 18000 },
+                    { level: '中级', title: '金融分析师', experienceMin: 2, experienceMax: 5, avgSalary: 30000 },
+                    { level: '高级', title: '高级分析师', experienceMin: 5, experienceMax: 8, avgSalary: 45000 },
+                    { level: '专家', title: '首席分析师', experienceMin: 8, experienceMax: 15, avgSalary: 60000 }
+                ]
+            },
+            {
+                id: 5,
+                name: '网络工程师',
+                industry: 'IT互联网',
+                description: '负责网络系统的设计、实施、维护和优化，确保网络系统的稳定运行',
+                requirements: ['网络技术', '系统管理', '安全防护', '故障排查'],
+                salaryMin: 10000,
+                salaryMax: 35000,
+                careerPath: [
+                    { level: '初级', title: '网络管理员', experienceMin: 0, experienceMax: 2, avgSalary: 12000 },
+                    { level: '中级', title: '网络工程师', experienceMin: 2, experienceMax: 5, avgSalary: 20000 },
+                    { level: '高级', title: '高级网络工程师', experienceMin: 5, experienceMax: 8, avgSalary: 28000 },
+                    { level: '专家', title: '网络架构师', experienceMin: 8, experienceMax: 15, avgSalary: 35000 }
+                ]
+            },
+            {
+                id: 6,
+                name: '产品经理',
+                industry: 'IT互联网',
+                description: '负责产品规划、需求分析、项目管理和产品运营，协调各方资源推动产品发展',
+                requirements: ['产品思维', '用户研究', '项目管理', '数据分析'],
+                salaryMin: 12000,
+                salaryMax: 45000,
+                careerPath: [
+                    { level: '初级', title: '产品专员', experienceMin: 0, experienceMax: 2, avgSalary: 14000 },
+                    { level: '中级', title: '产品经理', experienceMin: 2, experienceMax: 5, avgSalary: 25000 },
+                    { level: '高级', title: '高级产品经理', experienceMin: 5, experienceMax: 8, avgSalary: 35000 },
+                    { level: '专家', title: '产品总监', experienceMin: 8, experienceMax: 15, avgSalary: 45000 }
+                ]
+            }
+        ];
+
+        let selectedOccupation = null;
+        let salaryChart = null;
+        let industryChart = null;
+        let skillsChart = null;
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        // 初始化页面
+        function initializePage() {
+            renderOccupationCards();
+            setupScrollAnimations();
+            
+            // 检查URL参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const occupationId = urlParams.get('occupation');
+            if (occupationId) {
+                const occupation = occupations.find(o => o.id === parseInt(occupationId));
+                if (occupation) {
+                    selectOccupation(occupation, null);
+                }
+            }
+            
+            // 添加页面加载动画
+            anime({
+                targets: '.fade-in',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 800,
+                delay: anime.stagger(200),
+                easing: 'easeOutQuart'
+            });
+        }
+
+        // 渲染职业卡片
+        function renderOccupationCards() {
+            const container = document.getElementById('occupationCards');
+            
+            occupations.forEach(occupation => {
+                const card = document.createElement('div');
+                card.className = 'occupation-card p-6';
+                card.innerHTML = `
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-briefcase text-2xl text-blue-600"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-800 mb-2">${occupation.name}</h3>
+                        <p class="text-sm text-blue-600 mb-3">${occupation.industry}</p>
+                        <p class="text-sm text-gray-600 mb-4 line-clamp-3">${occupation.description}</p>
+                        <div class="text-lg font-bold text-green-600 mb-4">
+                            ¥${occupation.salaryMin/1000}k - ¥${occupation.salaryMax/1000}k
+                        </div>
+                        <button class="btn-primary w-full py-2 text-sm">
+                            查看详情
+                        </button>
+                    </div>
+                `;
+                
+                card.addEventListener('click', (e) => {
+                    selectOccupation(occupation, e.currentTarget);
+                });
+                container.appendChild(card);
+            });
+        }
+
+        // 选择职业
+        function selectOccupation(occupation, element = null) {
+            selectedOccupation = occupation;
+            
+            // 更新卡片选中状态
+            document.querySelectorAll('.occupation-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            if (element) {
+                element.classList.add('selected');
+            }
+            
+            // 显示详情区域
+            document.getElementById('occupationDetails').classList.remove('hidden');
+            
+            // 渲染职业详情
+            renderOccupationDetails(occupation);
+            
+            // 滚动到详情区域
+            document.getElementById('occupationDetails').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // 渲染职业详情
+        function renderOccupationDetails(occupation) {
+            // 基本信息
+            document.getElementById('occupationName').textContent = occupation.name;
+            document.getElementById('occupationIndustry').textContent = `${occupation.industry} · 专业职业`;
+            document.getElementById('occupationSalary').textContent = `¥${occupation.salaryMin/1000}k - ¥${occupation.salaryMax/1000}k`;
+            document.getElementById('occupationDescription').textContent = occupation.description;
+            
+            // 核心要求
+            const requirementsContainer = document.getElementById('occupationRequirements');
+            requirementsContainer.innerHTML = '';
+            occupation.requirements.forEach(req => {
+                const tag = document.createElement('span');
+                tag.className = 'bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm';
+                tag.textContent = req;
+                requirementsContainer.appendChild(tag);
+            });
+            
+            // 职业路径
+            renderCareerPath(occupation.careerPath);
+            
+            // 图表
+            renderSalaryChart(occupation.careerPath);
+            renderIndustryChart();
+            renderSkillsChart(occupation.requirements);
+            
+            // 相关推荐
+            renderRelatedRecommendations(occupation);
+        }
+
+        // 渲染职业路径
+        function renderCareerPath(careerPath) {
+            const container = document.getElementById('careerPath');
+            container.innerHTML = '';
+            
+            careerPath.forEach((path, index) => {
+                const pathCard = document.createElement('div');
+                pathCard.className = 'career-path-item p-6 text-center relative z-10';
+                pathCard.innerHTML = `
+                    <div class="text-lg font-bold mb-2">${path.level}</div>
+                    <div class="text-sm mb-3">${path.title}</div>
+                    <div class="text-xs opacity-80 mb-2">
+                        ${path.experienceMin}-${path.experienceMax}年经验
+                    </div>
+                    <div class="text-lg font-bold">¥${path.avgSalary/1000}k</div>
+                `;
+                
+                container.appendChild(pathCard);
+                
+                // 添加连接线（除了最后一个）
+                if (index < careerPath.length - 1) {
+                    const connector = document.createElement('div');
+                    connector.className = 'hidden lg:block path-connector h-12';
+                    container.appendChild(connector);
+                }
+            });
+            
+            // 添加动画
+            anime({
+                targets: '.career-path-item',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 600,
+                delay: anime.stagger(200),
+                easing: 'easeOutElastic(1, .8)'
+            });
+        }
+
+        // 渲染薪资趋势图表
+        function renderSalaryChart(careerPath) {
+            const chartContainer = document.getElementById('salaryChart');
+            
+            if (salaryChart) {
+                salaryChart.dispose();
+            }
+            
+            salaryChart = echarts.init(chartContainer);
+            
+            const option = {
+                title: {
+                    text: '职业发展薪资趋势',
+                    left: 'center',
+                    textStyle: {
+                        color: '#2C3E50',
+                        fontSize: 18,
+                        fontWeight: 'bold'
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function(params) {
+                        const data = params[0];
+                        return `${data.name}<br/>平均薪资: ¥${data.value/1000}k`;
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: careerPath.map(p => p.title),
+                    axisLabel: {
+                        rotate: 45,
+                        color: '#7F8C8D'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '月薪 (元)',
+                    axisLabel: {
+                        formatter: function(value) {
+                            return '¥' + value/1000 + 'k';
+                        },
+                        color: '#7F8C8D'
+                    }
+                },
+                series: [{
+                    data: careerPath.map(p => p.avgSalary),
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        color: '#4A90E4',
+                        width: 3
+                    },
+                    itemStyle: {
+                        color: '#4A90E4',
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0, color: 'rgba(74, 144, 228, 0.3)'
+                            }, {
+                                offset: 1, color: 'rgba(74, 144, 228, 0.05)'
+                            }]
+                        }
+                    }
+                }]
+            };
+            
+            salaryChart.setOption(option);
+        }
+
+        // 渲染行业需求图表
+        function renderIndustryChart() {
+            const chartContainer = document.getElementById('industryChart');
+            
+            if (industryChart) {
+                industryChart.dispose();
+            }
+            
+            industryChart = echarts.init(chartContainer);
+            
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c}% ({d}%)'
+                },
+                series: [{
+                    name: '行业需求',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    center: ['50%', '50%'],
+                    data: [
+                        { value: 35, name: '大型企业', itemStyle: { color: '#4A90E4' } },
+                        { value: 28, name: '中小企业', itemStyle: { color: '#7BB3F0' } },
+                        { value: 20, name: '创业公司', itemStyle: { color: '#A8C8EC' } },
+                        { value: 12, name: '政府机构', itemStyle: { color: '#D6E3F8' } },
+                        { value: 5, name: '其他', itemStyle: { color: '#B8C6DB' } }
+                    ],
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            };
+            
+            industryChart.setOption(option);
+        }
+
+        // 渲染技能要求图表
+        function renderSkillsChart(requirements) {
+            const chartContainer = document.getElementById('skillsChart');
+            
+            if (skillsChart) {
+                skillsChart.dispose();
+            }
+            
+            skillsChart = echarts.init(chartContainer);
+            
+            // 模拟技能重要性数据
+            const skillsData = requirements.map((skill, index) => ({
+                name: skill,
+                value: Math.floor(Math.random() * 40) + 60 // 60-100的随机值
+            }));
+            
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: skillsData.map(s => s.name),
+                    axisLabel: {
+                        color: '#7F8C8D'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '重要性',
+                    max: 100,
+                    axisLabel: {
+                        color: '#7F8C8D'
+                    }
+                },
+                series: [{
+                    data: skillsData.map(s => s.value),
+                    type: 'bar',
+                    itemStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0, color: '#4A90E4'
+                            }, {
+                                offset: 1, color: '#7BB3F0'
+                            }]
+                        }
+                    },
+                    barWidth: '60%'
+                }]
+            };
+            
+            skillsChart.setOption(option);
+        }
+
+        // 渲染相关推荐
+        function renderRelatedRecommendations(occupation) {
+            const container = document.getElementById('relatedRecommendations');
+            
+            // 获取相关职业（排除当前职业）
+            const relatedOccupations = occupations.filter(o => o.id !== occupation.id).slice(0, 3);
+            
+            container.innerHTML = '';
+            
+            relatedOccupations.forEach(relOccupation => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-50 rounded-lg p-6 hover:bg-gray-100 transition-colors cursor-pointer';
+                card.innerHTML = `
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-briefcase text-gray-600"></i>
+                        </div>
+                        <h4 class="font-semibold text-gray-800 mb-2">${relOccupation.name}</h4>
+                        <p class="text-sm text-gray-600 mb-3">${relOccupation.industry}</p>
+                        <div class="text-sm font-medium text-green-600 mb-3">
+                            ¥${relOccupation.salaryMin/1000}k - ¥${relOccupation.salaryMax/1000}k
+                        </div>
+                        <button class="btn-primary px-4 py-2 text-xs">
+                            查看详情
+                        </button>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => selectOccupation(relOccupation));
+                container.appendChild(card);
+            });
+        }
+
+        // 设置滚动动画
+        function setupScrollAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // 响应式图表
+        window.addEventListener('resize', function() {
+            if (salaryChart) salaryChart.resize();
+            if (industryChart) industryChart.resize();
+            if (skillsChart) skillsChart.resize();
+        });
+
+        // 新增职业显示功能
+        let newlyAddedOccupations = [];
+
+        // 添加新职业到显示列表
+        function addNewOccupationToDisplay(occupation) {
+            newlyAddedOccupations.push(occupation);
+            updateNewlyAddedOccupationsDisplay();
+        }
+
+        // 更新新增职业显示
+        function updateNewlyAddedOccupationsDisplay() {
+            const container = document.getElementById('newlyAddedOccupations');
+            if (!container) return;
+            
+            // 清除现有内容
+            container.innerHTML = '';
+            
+            if (newlyAddedOccupations.length === 0) return;
+            
+            const title = document.createElement('h2');
+            title.className = 'text-2xl font-bold text-gray-800 mb-6 text-center';
+            title.innerHTML = '<i class="fas fa-plus-circle text-green-500 mr-2"></i>最新添加的职业';
+            container.appendChild(title);
+            
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8';
+            
+            newlyAddedOccupations.slice(-3).forEach(occupation => {
+                const card = document.createElement('div');
+                card.className = 'occupation-card bg-green-50 border-2 border-green-500 p-6';
+                card.innerHTML = `
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-briefcase text-2xl text-green-600"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-800 mb-2">${occupation.name}</h3>
+                        <p class="text-sm text-green-600 mb-3">${occupation.industry}</p>
+                        <p class="text-sm text-gray-600 mb-4">${occupation.description.substring(0, 50)}...</p>
+                        <div class="text-lg font-bold text-green-600 mb-4">
+                            ¥${occupation.salaryMin/1000}k - ¥${occupation.salaryMax/1000}k
+                        </div>
+                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">新增</span>
+                    </div>
+                `;
+                card.addEventListener('click', (e) => {
+                    selectOccupation(occupation, e.currentTarget);
+                });
+                grid.appendChild(card);
+            });
+            
+            container.appendChild(grid);
+            
+            // 添加动画效果
+            anime({
+                targets: container,
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 600,
+                easing: 'easeOutQuart'
+            });
+        }
+
+        // 导出全局函数供HTML调用
+        window.selectOccupation = selectOccupation;
+        window.addNewOccupationToDisplay = addNewOccupationToDisplay;
+    </script>
+</body>
+</html>

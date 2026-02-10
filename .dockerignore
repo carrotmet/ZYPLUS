@@ -1,0 +1,34 @@
+# 忽略文件和目录
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+.nyc_output
+.DS_Store
+*.log
+temp/
+tmp/
+.cache/
+
+# 忽略开发配置文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 忽略测试文件
+__tests__/
+test/
+*.test.js
+*.spec.js
+
+# 忽略文档
+docs/
+documentation/
+*.md
+!README.md

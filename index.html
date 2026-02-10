@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>职业规划导航 - 专业选择与职业发展指导平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --primary-blue: #4A90E4;
+            --light-blue: #7BB3F0;
+            --pale-blue: #A8C8EC;
+            --very-light-blue: #D6E3F8;
+            --text-dark: #2C3E50;
+            --text-light: #7F8C8D;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, var(--very-light-blue) 0%, #F8FAFC 100%);
+            min-height: 100vh;
+        }
+        
+        .hero-title {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .major-tree {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .major-tree::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .major-tree::-webkit-scrollbar-track {
+            background: var(--very-light-blue);
+            border-radius: 3px;
+        }
+        
+        .major-tree::-webkit-scrollbar-thumb {
+            background: var(--light-blue);
+            border-radius: 3px;
+        }
+        
+        .tree-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .tree-item:hover {
+            background: var(--very-light-blue);
+            transform: translateX(4px);
+        }
+        
+        .tree-item.active {
+            background: var(--primary-blue);
+            color: white;
+        }
+        
+        .major-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(74, 144, 228, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .major-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(74, 144, 228, 0.15);
+        }
+        
+        .search-box {
+            background: white;
+            border: 2px solid var(--pale-blue);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box:focus-within {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(74, 144, 228, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 144, 228, 0.3);
+        }
+        
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-graduation-cap text-white text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold text-gray-800">职业规划导航</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">专业选择</a>
+                    <a href="major-detail.html" class="text-gray-600 hover:text-blue-600 transition-colors">职业详情</a>
+                    <a href="add-info.html" class="text-gray-600 hover:text-blue-600 transition-colors">信息管理</a>
+                    <a href="experience-sharing.html" class="text-gray-600 hover:text-blue-600 transition-colors">经验分享</a>
+                    <a href="report-center.html" class="text-gray-600 hover:text-blue-600 transition-colors">我的报告</a>
+                </div>
+                
+                <!-- 用户入口 -->
+                <div class="flex items-center space-x-4" id="userSection">
+                    <button id="userProfileBtn" class="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-user-circle text-xl"></i>
+                        <span id="userDisplayName">登录/注册</span>
+                    </button>
+                </div>
+                
+                <div class="search-box flex items-center px-4 py-2 w-64">
+                    <i class="fas fa-search text-gray-400 mr-2"></i>
+                    <input type="text" id="searchInput" placeholder="搜索专业..." class="outline-none flex-1 text-sm">
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero区域 -->
+    <section class="relative py-16 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-50 to-indigo-50"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 fade-in">
+                <h1 class="hero-title text-4xl md:text-5xl font-bold mb-4">
+                    专业选择 · 职业规划
+                </h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                    为高中生和大学生提供专业选择与职业发展的一站式指导平台，
+                    打通专业学习与未来职业的信息壁垒，助力您的职业发展之路
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主要内容区域 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左侧：专业树形导航 -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-sitemap text-blue-500 mr-2"></i>
+                        专业分类导航
+                    </h2>
+                    <div class="major-tree" id="majorTree">
+                        <!-- 动态生成的专业树 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：专业详情展示 -->
+            <div class="lg:col-span-2">
+                <div id="majorDetails">
+                    <!-- 默认欢迎界面 -->
+                    <div class="text-center py-16 fade-in">
+                        <div class="floating-animation inline-block mb-8">
+                            <div class="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-compass text-5xl text-blue-500"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">开始您的职业规划之旅</h3>
+                        <p class="text-gray-600 mb-8 max-w-2xl mx-auto">
+                            请从左侧选择您感兴趣的专业分类，我们将为您展示详细的职业发展路径、
+                            薪资趋势和相关职业信息，帮助您做出明智的专业选择
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+                            <div class="major-card p-6 text-center">
+                                <i class="fas fa-chart-line text-3xl text-blue-500 mb-3"></i>
+                                <h4 class="font-semibold text-gray-800 mb-2">职业路径</h4>
+                                <p class="text-sm text-gray-600">清晰的职业发展方向</p>
+                            </div>
+                            <div class="major-card p-6 text-center">
+                                <i class="fas fa-dollar-sign text-3xl text-green-500 mb-3"></i>
+                                <h4 class="font-semibold text-gray-800 mb-2">薪资趋势</h4>
+                                <p class="text-sm text-gray-600">详细的薪资发展数据</p>
+                            </div>
+                            <div class="major-card p-6 text-center">
+                                <i class="fas fa-users text-3xl text-purple-500 mb-3"></i>
+                                <h4 class="font-semibold text-gray-800 mb-2">就业前景</h4>
+                                <p class="text-sm text-gray-600">全面的行业分析</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 专业详情模板（放在majorDetails容器外部，防止被清空） -->
+                <template id="majorDetailTemplate">
+                    <div class="major-card p-8 mb-6">
+                        <div class="flex items-start justify-between mb-6">
+                            <div>
+                                <h2 class="text-3xl font-bold text-gray-800 mb-2" id="majorName"></h2>
+                                <p class="text-gray-600" id="majorCode"></p>
+                            </div>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium" id="majorDuration"></span>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">专业简介</h3>
+                            <p class="text-gray-600 leading-relaxed" id="majorDescription"></p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">主要课程</h3>
+                            <div class="flex flex-wrap gap-2" id="majorCourses">
+                                <!-- 课程标签 -->
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-4">
+                            <button class="btn-primary px-6 py-3 flex items-center">
+                                <i class="fas fa-eye mr-2"></i>
+                                查看职业路径
+                            </button>
+                            <button class="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-heart mr-2"></i>
+                                收藏专业
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 相关职业推荐 -->
+                    <div class="major-card p-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <i class="fas fa-briefcase text-blue-500 mr-2"></i>
+                            相关职业推荐
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="relatedOccupations">
+                            <!-- 职业卡片 -->
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- 最新添加的专业 -->
+        <section class="mt-16 fade-in" id="newlyAddedMajors">
+            <!-- 新增专业将在这里显示 -->
+        </section>
+
+        <!-- 热门专业推荐 -->
+        <section class="mt-16 fade-in">
+            <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center">热门专业推荐</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="popularMajors">
+                <!-- 热门专业卡片 -->
+            </div>
+        </section>
+    </main>
+
+    <!-- 登录/注册弹窗 -->
+    <div id="authModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl transform transition-all">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="authTitle" class="text-2xl font-bold text-gray-800">用户登录</h2>
+                <button id="closeAuthModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- 登录表单 -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                    <input type="text" id="loginUsername" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                           placeholder="请输入用户名">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                    <input type="password" id="loginPassword" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                           placeholder="请输入密码">
+                </div>
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-medium hover:shadow-lg transition-all">
+                    登录
+                </button>
+                <p class="text-center text-sm text-gray-600">
+                    还没有账号？<button type="button" id="showRegister" class="text-blue-600 hover:underline">立即注册</button>
+                </p>
+            </form>
+            
+            <!-- 注册表单 -->
+            <form id="registerForm" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                    <input type="text" id="regUsername" required minlength="3"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                           placeholder="请输入用户名（至少3位）">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                    <input type="password" id="regPassword" required minlength="6"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                           placeholder="请输入密码（至少6位）">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">昵称（可选）</label>
+                    <input type="text" id="regNickname"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                           placeholder="请输入昵称">
+                </div>
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-medium hover:shadow-lg transition-all">
+                    注册
+                </button>
+                <p class="text-center text-sm text-gray-600">
+                    已有账号？<button type="button" id="showLogin" class="text-blue-600 hover:underline">立即登录</button>
+                </p>
+            </form>
+            
+            <div id="authMessage" class="mt-4 p-3 rounded-lg hidden"></div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-600">&copy; 2024 职业规划导航平台. 助力您的职业发展之路</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+    // 用户认证相关代码
+    const API_BASE_URL = 'http://localhost:8000/api';
+    
+    // 检查登录状态
+    function checkLoginStatus() {
+        const token = localStorage.getItem('auth_token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (token && user.username) {
+            document.getElementById('userDisplayName').textContent = user.nickname || user.username;
+            document.getElementById('userProfileBtn').onclick = goToUserProfile;
+            return true;
+        } else {
+            document.getElementById('userDisplayName').textContent = '登录/注册';
+            document.getElementById('userProfileBtn').onclick = showAuthModal;
+            return false;
+        }
+    }
+    
+    // 显示登录弹窗
+    function showAuthModal() {
+        document.getElementById('authModal').classList.remove('hidden');
+        document.getElementById('authModal').classList.add('flex');
+        showLoginForm();
+    }
+    
+    // 隐藏登录弹窗
+    function hideAuthModal() {
+        document.getElementById('authModal').classList.add('hidden');
+        document.getElementById('authModal').classList.remove('flex');
+    }
+    
+    // 显示登录表单
+    function showLoginForm() {
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+        document.getElementById('authTitle').textContent = '用户登录';
+        hideAuthMessage();
+    }
+    
+    // 显示注册表单
+    function showRegisterForm() {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('registerForm').classList.remove('hidden');
+        document.getElementById('authTitle').textContent = '用户注册';
+        hideAuthMessage();
+    }
+    
+    // 显示认证消息
+    function showAuthMessage(message, isError = false) {
+        const msgDiv = document.getElementById('authMessage');
+        msgDiv.textContent = message;
+        msgDiv.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        msgDiv.classList.add(isError ? 'bg-red-100' : 'bg-green-100');
+        msgDiv.classList.add(isError ? 'text-red-800' : 'text-green-800');
+    }
+    
+    // 隐藏认证消息
+    function hideAuthMessage() {
+        document.getElementById('authMessage').classList.add('hidden');
+    }
+    
+    // 跳转到用户画像页面
+    function goToUserProfile() {
+        window.location.href = 'user-profile.html';
+    }
+    
+    // 登录处理
+    async function handleLogin(e) {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                // 保存登录信息
+                localStorage.setItem('auth_token', result.data.token);
+                localStorage.setItem('user', JSON.stringify(result.data.user));
+                localStorage.setItem('user_id', result.data.user_profile_id);
+                
+                showAuthMessage('登录成功！', false);
+                
+                setTimeout(() => {
+                    hideAuthModal();
+                    checkLoginStatus();
+                    goToUserProfile();
+                }, 500);
+            } else {
+                showAuthMessage(result.detail || '登录失败', true);
+            }
+        } catch (error) {
+            showAuthMessage('网络错误，请稍后重试', true);
+        }
+    }
+    
+    // 注册处理
+    async function handleRegister(e) {
+        e.preventDefault();
+        const username = document.getElementById('regUsername').value;
+        const password = document.getElementById('regPassword').value;
+        const nickname = document.getElementById('regNickname').value;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, nickname })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                showAuthMessage('注册成功！请登录', false);
+                setTimeout(() => {
+                    showLoginForm();
+                }, 1000);
+            } else {
+                showAuthMessage(result.detail || '注册失败', true);
+            }
+        } catch (error) {
+            showAuthMessage('网络错误，请稍后重试', true);
+        }
+    }
+    
+    // 事件绑定
+    document.addEventListener('DOMContentLoaded', () => {
+        checkLoginStatus();
+        
+        // 弹窗控制
+        document.getElementById('closeAuthModal').onclick = hideAuthModal;
+        document.getElementById('authModal').onclick = (e) => {
+            if (e.target === document.getElementById('authModal')) {
+                hideAuthModal();
+            }
+        };
+        
+        // 表单切换
+        document.getElementById('showRegister').onclick = showRegisterForm;
+        document.getElementById('showLogin').onclick = showLoginForm;
+        
+        // 表单提交
+        document.getElementById('loginForm').onsubmit = handleLogin;
+        document.getElementById('registerForm').onsubmit = handleRegister;
+    });
+    </script>
+</body>
+</html>

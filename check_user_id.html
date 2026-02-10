@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>检查用户ID</title>
+</head>
+<body>
+    <h2>当前浏览器存储的用户信息</h2>
+    <div id="info"></div>
+    
+    <script>
+        const userId = localStorage.getItem('user_id');
+        const token = localStorage.getItem('auth_token');
+        
+        document.getElementById('info').innerHTML = `
+            <p><strong>user_id:</strong> ${userId || '未设置'}</p>
+            <p><strong>auth_token:</strong> ${token ? token.substring(0, 20) + '...' : '未设置'}</p>
+            <hr>
+            <p>如果你看到的是 <code>user_Z03wP07SwhPaOVyb9SRf_g</code>，那数据是正常的。</p>
+            <p>如果你看到的是 <code>test_user_123</code>，那说明表单数据更新到了其他用户。</p>
+        `;
+    </script>
+</body>
+</html>

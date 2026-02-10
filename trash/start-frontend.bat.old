@@ -1,0 +1,50 @@
+@echo off
+chcp 65001 >nul
+echo ================================================================================
+echo                    职业规划导航平台 - 前端服务启动脚本
+echo ================================================================================
+echo.
+
+REM 检查Python是否安装
+python --version >nul 2>&1
+if errorlevel 1 (
+    echo [错误] 未检测到Python，请先安装Python 3.9+
+    echo 下载地址: https://www.python.org/downloads/
+    pause
+    exit /b 1
+)
+
+echo [信息] Python环境检测成功
+
+REM 获取当前目录
+set SCRIPT_DIR=%~dp0
+
+echo [信息] 项目目录: %SCRIPT_DIR%
+
+REM 检查HTML文件
+if not exist "%SCRIPT_DIR%index.html" (
+    echo [错误] 未找到 index.html 文件
+    pause
+    exit /b 1
+)
+
+echo.
+echo ================================================================================
+echo                          启动前端服务
+echo ================================================================================
+echo.
+echo [信息] 服务地址: http://localhost:8001
+echo [信息] 首页:     http://localhost:8001/index.html
+echo [信息] 专业详情: http://localhost:8001/major-detail.html
+echo [信息] 添加信息: http://localhost:8001/add-info.html
+echo [信息] 经历分享: http://localhost:8001/experience-sharing.html
+echo.
+echo [提示] 1. 确保后端服务已启动 (http://localhost:8000)
+echo [提示] 2. 按 Ctrl+C 停止服务
+echo ================================================================================
+echo.
+
+REM 启动Python内置HTTP服务器
+python -m http.server 8001 --directory "%SCRIPT_DIR%"
+
+pause
