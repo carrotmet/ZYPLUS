@@ -56,11 +56,12 @@ class DSPyCareerRAGService:
             # 使用OpenAI兼容接口（Kimi/DeepSeek等）
             if os.environ.get('LAZYLLM_KIMI_API_KEY'):
                 # Kimi配置 - DSPy 3.x使用LM类
+                # Note: kimi-k2.5 only supports temperature=1
                 self.llm = dspy.LM(
                     model='openai/kimi-k2.5',
                     api_key=api_key,
                     api_base='https://api.moonshot.cn/v1',
-                    temperature=0.7,
+                    temperature=1.0,  # kimi-k2.5 only supports temperature=1
                     max_tokens=2000
                 )
             else:
