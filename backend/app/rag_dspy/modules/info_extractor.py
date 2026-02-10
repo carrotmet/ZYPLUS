@@ -56,8 +56,8 @@ class StructuredInfoExtractor(dspy.Module):
         
         # 解析价值观
         values = []
-        if result.values:
-            values = [v.strip() for v in result.values.split(',')]
+        if result.value_keywords:
+            values = [v.strip() for v in result.value_keywords.split(',')]
         
         return {
             'interests': interests,

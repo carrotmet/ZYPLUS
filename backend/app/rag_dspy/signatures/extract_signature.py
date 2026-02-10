@@ -37,7 +37,7 @@ class StructuredInfoExtraction(dspy.Signature):
     )
     
     # 价值观
-    values = dspy.OutputField(
+    value_keywords = dspy.OutputField(
         desc="价值观关键词列表，用逗号分隔，如'成就感,自由,创新'"
     )
     
